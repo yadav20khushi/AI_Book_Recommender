@@ -5,7 +5,7 @@ module: apps/config_loader
   - Handled exceptions like missing key, module not found, and invalid JSON
 - config_store.py:
   - wrote code to make the parsing logic accessible globally
-  - unittest: performed successful tests in python manage.py shell:
+- unittest: performed successful tests in python manage.py shell:
   - **Test 1**:<br>
    -->from apps.config_loader.config_store import get config<br>
    -->config = get_config()<br>
