@@ -1,8 +1,8 @@
-# Module wise updates/documentation
+# Module-wise updates/documentation
 module: apps/config_loader
 - config_parser.py: 
-  - written proper parser logic (i.e. to convert json to python dictionary)
-  - Handled exceptions like missing key, module not found and invalid json
+  - written proper parser logic (i.e., to convert JSON to Python dictionary)
+  - Handled exceptions like missing key, module not found, and invalid JSON
 - config_store.py:
   - wrote code to make the parsing logic accessible globally
   - unittest: performed successful tests in python manage.py shell:
