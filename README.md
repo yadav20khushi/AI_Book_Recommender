@@ -16,4 +16,9 @@ module: apps/config_loader
    -->config = get_config()<br>
    -->print(config)<br>
    **result**: 'Missing required config keys: library_id'<br>
-- ✅*Intern Focus: Write config parsing logic. Test with sample JSONs.*
+- ✅*Intern Focus: Write config parsing logic. Test with sample JSONs.*<br>
+<br>
+module: apps/recommendations
+- 
+
+
