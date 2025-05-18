@@ -31,11 +31,7 @@ module: apps/recommendations/..
    -->from apps.recommendations.recommendation import built_prompt<br>
    -->for _ in range(5):                                           
       .....print(built_prompt("fantasy", "children"))<br>
-   **result**: What are 5 highly-rated fantasy books for children readers?<br>
-               What are 5 highly-rated fantasy books for children readers? <br>
-               Can you suggest five fantasy books for someone in the children category?<br>
-               Give me a list of 5 fantasy books that are great for children.<br>
-               Recommend 5 fantasy books suitable for children.<br>
+   **result**: What are 5 highly-rated fantasy books for children readers? What are 5 highly-rated fantasy books for children readers? Can you suggest five fantasy books for someone in the children category? Give me a list of 5 fantasy books that are great for children. Recommend 5 fantasy books suitable for children.<br><
   - **Test 2**: *to validate clova API call integration*<br>
     -->from apps.recommendations.recommendation import get_recommendations<br>
     -->books = get_recommendations('fantasy','children')<br>
