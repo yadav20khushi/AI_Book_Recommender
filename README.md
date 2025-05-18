@@ -39,19 +39,6 @@
   **result**: ['The Hobbit by J.R.R. Tolkien', 'Percy Jackson and the Olympians by Rick Riordan', "Harry Potter and the Sorcerer's Stone by J.K. Rowling", 'Eragon by Christopher Paolini', 'The                     Chronicles of Narnia by C.S. Lewis']<br>
    --> PromptLog.objects.all()<br>
   **result**: <QuerySet [<PromptLog: PromptLog (2025-05-18 07:40:31.162822+00:00): I'm looking for fantasy books ...>, <PromptLog: PromptLog (2025-05-18 07:47:11.744921+00:00): What are 5 highly-                 rated fantas...>]>
-- **Error**: RuntimeError: Model class apps.recommendations.models.PromptLog doesn't declare an explicit app_label and isn't in an application in INSTALLED_APPS.
-   - Cause:
-      - This error occurred because Django was not recognizing the recommendations app properly.
-      - The root cause was related to the app not being correctly registered or an issue with migrations/state.
-    
-   - Solution:
-      - Ensured apps.recommendations was correctly added to INSTALLED_APPS in settings.py (using the dotted path).
-      - Deleted all .pyc files and __pycache__ folders to clear any stale compiled files.
-      - Created migrations multiple times (0001_initial.py, then 0002_alter_promptlog_created_at.py, finally 0003_alter_promptlog_created_at.py) to sync model changes.
-      - Fixed the DateTimeField default by using default=timezone.now without parentheses to avoid setting a fixed datetime.
-      - Finally ran python manage.py migrate successfully without errors.
-    
-- **Future note**: When integrating APIs, we would have to optimize the call_clova function so that it efficiently handles edge cases (e.g., empty responses, errors, retries), Be optimized for latency and reliability, possibly be wrapped in async or caching logic depending on usage volume.
 - **✅*Intern Focus: Create and test multiple prompt templates. Validate Clova API call integration.* <br>**
 
 
