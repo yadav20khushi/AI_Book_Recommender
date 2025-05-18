@@ -29,7 +29,7 @@ module: apps/recommendations/..
 - unittest:
   - **Test 1**: *to check multiple prompt templates*<br>
    -->from apps.recommendations.recommendation import built_prompt<br>
-   -->for _ in range(5):<br>                                           
+   -->for _ in range(5):                                           
       .....print(built_prompt("fantasy", "children"))<br>
    **result**: What are 5 highly-rated fantasy books for children readers?<br>
                What are 5 highly-rated fantasy books for children readers? <br>
