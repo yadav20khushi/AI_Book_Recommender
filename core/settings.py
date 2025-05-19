@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.config_loader',
     'apps.recommendations',
+    'apps.books'
 ]
 
 MIDDLEWARE = [
