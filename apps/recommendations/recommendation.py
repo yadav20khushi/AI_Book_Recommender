@@ -1,5 +1,6 @@
 import random
-from apps.recommendations.models import PromptLog
+from apps.recommendations.models import PromptLog, RecommendedBook
+from apps.books.services import  get_or_fetch_book
 def built_prompt(genre: str, age_group: str) -> str:
     templates = [
         f"Recommend 5 {genre} books suitable for {age_group}.",
@@ -41,7 +42,24 @@ def get_recommendations(genre: str, age_group: str) -> str:
     prompt = built_prompt(genre, age_group)
     response = call_clova(prompt)
     books = parse_response(response)
-    
-    PromptLog.objects.create(prompt=prompt, response=response)
-    
-    return books
+
+    prompt_log = PromptLog.objects.create(prompt=prompt, response=response)
+
+    recommended_books = []
+    for index, line in enumerate(books):
+        if 'by' in line:
+            title, author = line.split('by', 1)
+        else:
+            title, author = line, "Unknown"
+
+        book = get_or_fetch_book(title.strip(), author.strip())
+
+        RecommendedBook.objects.create(
+            prompt_log=prompt_log,
+            book=book,
+            rank=index + 1  # ranks 1 to 5
+        )
+
+        recommended_books.append(book)
+
+    return recommended_books
