@@ -12,6 +12,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import sys
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # load .env variables
+
+EXTERNAL_API_KEY = os.getenv("EXTERNAL_API_KEY")
+EXTERNAL_API_BASE_URL = os.getenv("EXTERNAL_API_BASE_URL")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +49,7 @@ INSTALLED_APPS = [
     'apps.config_loader',
     'apps.recommendations',
     'apps.books',
+    'apps.external_api',
 ]
 
 MIDDLEWARE = [
@@ -124,3 +133,15 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # or your Redis Docker container if you're using Docker
+        'TIMEOUT': None,  # We’ll define it per-use if needed
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
