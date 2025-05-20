@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'apps.config_loader',
     'apps.recommendations',
     'apps.books',
+    'apps.external_api',
 ]
 
 MIDDLEWARE = [
