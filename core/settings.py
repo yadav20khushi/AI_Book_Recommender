@@ -12,6 +12,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import sys
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # load .env variables
+
+EXTERNAL_API_KEY = os.getenv("EXTERNAL_API_KEY")
+EXTERNAL_API_BASE_URL = os.getenv("EXTERNAL_API_BASE_URL")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
