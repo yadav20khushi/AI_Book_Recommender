@@ -30,6 +30,7 @@ def fetch_from_naru(isbn: str, title: str = None, author: str = None) -> Book:
         )
         return book
 
+# To only check if a book exists in db and if not then trigger external_api then save in db and return to recommendations
 def get_or_fetch_book(title: str, author: str, isbn: str = None) -> Book:
     try:
         return Book.objects.get(title=title, author=author)
