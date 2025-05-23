@@ -2,6 +2,7 @@ import random
 import time
 from django.core.cache import cache
 from django.conf import settings
+from apps.caching.utils import cache_with_ttl
 
 def get_book_info(isbn: str) -> dict:
     cache_key = f"book_info:{isbn}"
