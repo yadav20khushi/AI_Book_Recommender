@@ -1,65 +1,80 @@
-import random
-from apps.recommendations.models import PromptLog, RecommendedBook
-from apps.books.services import  get_or_fetch_book
-def built_prompt(genre: str, age_group: str) -> str:
-    templates = [
-        f"Recommend 5 {genre} books suitable for {age_group}.",
-        f"I'm looking for {genre} books that would be perfect for {age_group}. List five.",
-        f"Can you suggest five {genre} books for someone in the {age_group} category?",
-        f"What are 5 highly-rated {genre} books for {age_group} readers?",
-        f"Give me a list of 5 {genre} books that are great for {age_group}."
-    ]
-    return random.choice(templates)
+'''
+    users_selected_book calls clova by passing a list of dict of
+    books metadata + desc. We want to pass this to clova, along with
+    a prompt which tells it to communicate and explain about the book
+    and answer followup questions. Also, we want to save only the book
+    info data in userhistory db
+'''
+import requests
+from datetime import datetime
+from apps.recommendations.models import UserHistory
+from apps.books.models import Book
+import os
 
-def call_clova(prompt: str) -> str:
-    print(f"sending prompt to clova: {prompt}")
+CLOVA_API_URL = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003"
+CLOVA_API_KEY = os.getenv("CLOVA_API_KEY")
 
-    mock_response = """
-    1. The Hobbit by J.R.R. Tolkien
-    2. Percy Jackson and the Olympians by Rick Riordan
-    3. Harry Potter and the Sorcerer's Stone by J.K. Rowling
-    4. Eragon by Christopher Paolini
-    5. The Chronicles of Narnia by C.S. Lewis
-    """
-    return mock_response.strip()
+def call_clova(book_metadata: list[dict], username: str):
+    if not book_metadata:
+        return "No book data provided."
 
-def parse_response(response: str) -> list:
-    """
-    Extract book titles from Clova response.
-    """
-    books = []
-    for line in response.strip().split('\n'):
-        # Remove leading numbering (e.g., '1.')
-        parts = line.strip().split('.', 1)
-        if len(parts) == 2:
-            title = parts[1].strip()
-            books.append(title)
-        else:
-            books.append(line.strip())  # fallback
-    return books
+    selected = book_metadata[0]  # assuming single selected book
+    title = selected.get("title", "N/A")
+    author = selected.get("authors", "N/A")
+    description = selected.get("description", "N/A")
+    isbn13 = selected.get("isbn13", "N/A")
+    cover = selected.get("cover", "")
 
-def get_recommendations(genre: str, age_group: str) -> str:
-    prompt = built_prompt(genre, age_group)
-    response = call_clova(prompt)
-    books = parse_response(response)
+    # Clova Prompt - Need a good korean prompt!
+    user_prompt = (
+        f"Please explain the following book to me like I am a curious reader:\n\n"
+        f"Title: {title}\nAuthor: {author}\nDescription: {description}\n\n"
+        f"Answer my questions about it in detail."
+    )
 
-    prompt_log = PromptLog.objects.create(prompt=prompt, response=response)
+    headers = {
+        "Authorization": f"Bearer {CLOVA_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-    recommended_books = []
-    for index, line in enumerate(books):
-        if 'by' in line:
-            title, author = line.split('by', 1)
-        else:
-            title, author = line, "Unknown"
+    payload = {
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant that deeply understands books."},
+            {"role": "user", "content": user_prompt}
+        ],
+        "maxTokens": 1024,
+        "temperature": 0.7,
+        "topP": 0.8,
+    }
 
-        book = get_or_fetch_book(title.strip(), author.strip())
+    try:
+        response = requests.post(CLOVA_API_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        result = response.json()
 
-        RecommendedBook.objects.create(
-            prompt_log=prompt_log,
-            book=book,
-            rank=index + 1  # ranks 1 to 5
-        )
+        # Optional: return Clova's answer
+        clova_reply = result["choices"][0]["message"]["content"]
 
-        recommended_books.append(book)
+    except Exception as e:
+        return f"Failed to contact Clova: {e}"
 
-    return recommended_books
+    # Save book + user history
+    book_obj, _ = Book.objects.get_or_create(
+        isbn13=isbn13,
+        defaults={
+            "title": title,
+            "author": author,
+            "summary": description,
+            "cover_url": cover
+        }
+    )
+
+    now = datetime.now()
+    UserHistory.objects.create(
+        username=username,
+        book=book_obj,
+        session_start=now,
+        session_end=now  # update end later if needed
+    )
+
+    return clova_reply #Connect with user interface so that user's followup questions are sent here
