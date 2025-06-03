@@ -21,3 +21,6 @@ Thumbs.db
 # Environment Variables
 .env
 .env.*
+
+test_clova.py
+Archived.py

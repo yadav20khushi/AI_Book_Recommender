@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <script defer src="{% static 'js/sidebar.js' %}"></script>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <ul class="library-list">
+            <!-- Example list of libraries -->
+            <li>서울 도서관</li>
+            <li>부산 중앙</li>
+            <li>대구 시립</li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="greeting">안녕하세요~~ 오늘은 어떤 책이 읽고 싶으신가요?</div>
+
+        <div class="tile-container">
+            <a href="{% url 'keyword_page' %}" class="tile">키워드</a>
+            <a href="{% url 'age_group_page' %}" class="tile">연령별</a>
+            <a href="{% url 'bestseller_page' %}" class="tile">베스트셀러</a>
+        </div>
+
+        <div class="main-search-bar">
+            <input type="text" placeholder="책 제목을 입력하세요..." />
+            <button>검색</button>
+        </div>
+    </div>
+
+</body>
+</html>

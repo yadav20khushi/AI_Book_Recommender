@@ -1,0 +1,49 @@
+from apps.external_api.base import ExternalAPIService
+from apps.caching.cache import api_cache
+from apps.books.models import Book
+from django.core.cache import cache
+
+class KeywordRecommendationFlow(ExternalAPIService):
+    def __init__(self, month=None):
+        self.month = month or self.get_current_month()
+    def get_current_month(self):
+        from datetime import datetime
+        return datetime.now().strftime("%Y-%m")
+
+    """
+        When the user selects keyword on the home_page.html, this api will be triggered and the top 10
+        keywords will be shown on keyword_page.html
+    """
+    @api_cache(ttl=3600)  # ⏱ 1 hour cache
+    def get_monthly_keywords(self):
+        url = f"https://data4library.kr/api/monthlyKeywords?authKey={self.auth_key}&month={self.month}&format=json"
+        # Logic to fetch top 10 keywords only
+        res = self.get_json(url, fallback_data=[])
+        keywords = []
+        words = res.get('response',{}).get('keywords',[])
+        for items in words[:10]:
+            keywords.append(items.get('word','N/A'))
+
+        return keywords #Connect with keyword_page.html
+
+    """
+        When the user selects a keyword on keyword_page.html, then this api will be triggered and the list 
+        of books will be shown on bookList_page.html
+    """
+    @api_cache(ttl=3600)
+    def get_books_by_keyword(self, keyword): #The user's selected keyword
+        url = f"https://data4library.kr/api/srchBooks?authKey={self.auth_key}&keyword={keyword}&format=json"
+        res =  self.get_json(url, fallback_data=[])
+        parsed = []
+        for item in res.get("response", {}).get("docs", [])[:10]:
+            book_data = item.get("doc", {})
+            parsed.append({
+                "title": book_data.get("bookname"),
+                "isbn13": book_data.get("isbn13"),
+                "author": book_data.get("authors"),
+                "cover": book_data.get("bookImageURL") #Display to user
+            })
+        return parsed #Connect with bookList_page.html
+
+
+

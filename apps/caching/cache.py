@@ -2,7 +2,7 @@ from django.core.cache import cache
 import functools
 import json
 
-def cache_with_ttl(ttl_seconds):
+def api_cache(ttl_seconds):
     """
     Decorator to cache the result of a function in Redis with TTL.
     Assumes function returns JSON-serializable data.

@@ -1,0 +1,115 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f7f7f7;
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    background-color: #202123;
+    color: white;
+    width: 250px;
+    padding-top: 20px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    position: fixed;
+    height: 100vh;
+}
+
+.sidebar.collapsed {
+    width: 60px;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.library-list {
+    list-style: none;
+    padding: 20px 10px;
+}
+
+.library-list li {
+    margin: 10px 0;
+    cursor: pointer;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 100px;
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main-content {
+    margin-left: 60px;
+}
+
+.greeting {
+    position: absolute;
+    top: 20%;
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.tile-container {
+    position: absolute;
+    top: 35%;
+    display: flex;
+    gap: 30px;
+}
+
+.tile {
+    padding: 20px 30px;
+    background-color: white;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+}
+
+.tile:hover {
+    background-color: #ececec;
+    transform: translateY(-5px);
+}
+
+.main-search-bar {
+    position: absolute;
+    bottom: 40px;
+    width: 50%;
+    display: flex;
+    align-items: center;
+}
+
+.main-search-bar input {
+    width: 100%;
+    padding: 15px;
+    border-radius: 24px 0 0 24px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    outline: none;
+}
+
+.main-search-bar button {
+    padding: 15px 20px;
+    border: none;
+    border-radius: 0 24px 24px 0;
+    background-color: #10a37f;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}

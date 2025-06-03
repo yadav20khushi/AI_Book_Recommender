@@ -3,18 +3,16 @@ from django.utils import timezone
 from apps.books.models import Book
 
 # Create your models here.
-class PromptLog(models.Model):
-    prompt = models.TextField()
-    response = models.TextField()
-    created_at = models.DateTimeField(default=timezone.now)
 
-    def __str__(self):
-        return f"PromptLog ({self.created_at}): {self.prompt[:30]}..."
-
-class RecommendedBook(models.Model):
+class UserHistory(models.Model):
+    username = models.CharField(max_length=100)  # or use ForeignKey if auth
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    prompt_log = models.ForeignKey("PromptLog", on_delete=models.CASCADE)
-    rank = models.PositiveIntegerField()
+    session_start = models.DateTimeField()
+    session_end = models.DateTimeField()
+
+    def session_duration(self):
+        return self.session_end - self.session_start
 
     def __str__(self):
-        return f"{self.rank}. {self.book.title} ({self.prompt_log.created_at})"
+        return f"{self.username} selected {self.book.title} on {self.session_end}"
+
