@@ -22,5 +22,8 @@ Thumbs.db
 .env
 .env.*
 
+# Scripts
 test_clova.py
 Archived.py
+search bar.html
+side bar.html
