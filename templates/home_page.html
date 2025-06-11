@@ -1,40 +1,635 @@
 <!DOCTYPE html>
-{% load static %}
+<!--{% load static %} -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
-    <script defer src="{% static 'js/sidebar.js' %}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="{% static 'css/home.css' %}"> -->
+    <!--<script defer src="{% static 'js/sidebar.js' %}"></script>-->
+
+    <title>Dark Theme Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #d1d5db;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles - Dark Theme */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 260px;
+            background: #1a1a1a;
+            border-right: 1px solid #2d2d2d;
+            box-shadow: 0 0 64px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+            transition: width 0.3s ease, transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+        }
+
+        .sidebar.collapsed .menu-text,
+        .sidebar.collapsed .menu-label,
+        .sidebar.collapsed .chat-title,
+        .sidebar.collapsed .profile-name {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .sidebar.collapsed .menu-item,
+        .sidebar.collapsed .chat-item {
+            justify-content: center;
+            padding: 12px 8px;
+        }
+
+        .sidebar.collapsed .profile-section {
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .sidebar-header {
+            padding: 12px;
+            border-bottom: 1px solid #2d2d2d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+
+        .logo-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            color: #d1d5db;
+        }
+
+        .logo-btn:hover {
+            background: #2d2d2d;
+        }
+
+        .close-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: background-color 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #2d2d2d;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px;
+        }
+
+        .menu-section {
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 4px;
+            border: none;
+            background: transparent;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #d1d5db;
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #2d2d2d;
+        }
+
+        .menu-item.active {
+            background: #374151;
+        }
+
+        .menu-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            transition: margin 0.3s ease;
+        }
+
+        .sidebar.collapsed .menu-icon {
+            margin-right: 0;
+        }
+
+        .menu-text {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .menu-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 16px 12px 8px;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            margin-bottom: 2px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #d1d5db;
+            transition: background-color 0.2s;
+        }
+
+        .chat-item:hover {
+            background: #2d2d2d;
+        }
+
+        .chat-title {
+            font-size: 14px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: opacity 0.2s ease;
+        }
+
+        .chat-options {
+            opacity: 0;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-item:hover .chat-options {
+            opacity: 1;
+        }
+
+        .options-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+        }
+
+        .options-btn:hover {
+            background: #374151;
+        }
+
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid #2d2d2d;
+            background: #111111;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-section:hover {
+            background: #2d2d2d;
+        }
+
+        .profile-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 1px solid #2d2d2d;
+            flex-shrink: 0;
+            transition: margin 0.3s ease;
+        }
+
+        .sidebar.collapsed .profile-avatar {
+            margin-right: 0;
+        }
+
+        .profile-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #d1d5db;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 100px;
+            transition: margin-left 0.3s ease;
+            background: #0f0f0f;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 60px;
+        }
+
+        .greeting {
+            position: absolute;
+            top: 20%;
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .tile-container {
+            position: absolute;
+            top: 35%;
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 900px;
+        }
+
+        .tile {
+            padding: 30px 40px;
+            background: #1a1a1a;
+            border: 2px solid #2d2d2d;
+            border-radius: 16px;
+            text-decoration: none;
+            color: #d1d5db;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            min-width: 220px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .tile:hover {
+            background: #2a2a2a;
+            border-color: #4a5568;
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            color: #ffffff;
+        }
+
+        .tile:active {
+            transform: translateY(-4px);
+        }
+
+        /* Search Bar Styles */
+        .composer-form {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .composer-container {
+            position: relative;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 28px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+        }
+
+        .composer-input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .composer-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #d1d5db;
+            resize: none;
+            font-family: inherit;
+            min-height: 24px;
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+
+        .composer-input:focus {
+            background-color: #4b5563;
+        }
+
+        .composer-input::placeholder {
+            color: #6b7280;
+        }
+
+        .composer-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            padding: 8px;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            width: 40px;
+            height: 40px;
+        }
+
+        .composer-btn:hover {
+            background-color: #4b5563;
+            color: #d1d5db;
+        }
+
+        .composer-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .actions-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .actions-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .send-btn {
+            background-color: #ffffff;
+            color: #000000;
+            width: 36px;
+            height: 36px;
+            transition: all 0.2s ease;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background-color: #f3f4f6;
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            background-color: #4b5563;
+            color: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .main-content {
+                margin-left: 60px;
+            }
+
+            .tile-container {
+                gap: 20px;
+                padding: 0 20px;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .tile {
+                min-width: 200px;
+                padding: 25px 30px;
+                font-size: 14px;
+            }
+
+            .greeting {
+                font-size: 24px;
+            }
+        }
+    </style>>
 </head>
 <body>
-
     <!-- Sidebar -->
-    <div class="sidebar">
-        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-        <ul class="library-list">
-            <!-- Example list of libraries -->
-            <li>서울 도서관</li>
-            <li>부산 중앙</li>
-            <li>대구 시립</li>
-        </ul>
+    <div class="sidebar" id="sidebar">
+        <!-- Header -->
+        <div class="sidebar-header">
+            <button class="logo-btn" aria-label="Home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13.5714 22.5C12.8776 22.5 12.2185 22.367 11.5942 22.101C10.9698 21.835 10.4148 21.464 9.92914 20.988C9.40188 21.17 8.85382 21.261 8.28494 21.261C7.3553 21.261 6.49504 21.03 5.70416 20.568C4.91328 20.106 4.27502 19.476 3.7894 18.678C3.31764 17.88 3.08176 16.991 3.08176 16.011C3.08176 15.605 3.13726 15.164 3.24827 14.688C2.69326 14.17 2.26313 13.575 1.95788 12.903C1.65263 12.217 1.5 11.503 1.5 10.761C1.5 10.005 1.65956 9.277 1.97869 8.577C2.29782 7.877 2.74182 7.275 3.3107 6.771C3.89346 6.253 4.5664 5.896 5.32953 5.7C5.48216 4.902 5.80129 4.188 6.28692 3.558C6.78642 2.914 7.39693 2.41 8.11843 2.046C8.83994 1.682 9.61001 1.5 10.4286 1.5C11.1224 1.5 11.7815 1.633 12.4058 1.899C13.0302 2.165 13.5852 2.536 14.0709 3.012C14.5981 2.83 15.1462 2.739 15.7151 2.739C16.6447 2.739 17.505 2.97 18.2958 3.432C19.0867 3.894 19.718 4.524 20.1898 5.322C20.6754 6.12 20.9182 7.009 20.9182 7.989C20.9182 8.395 20.8627 8.836 20.7517 9.312C21.3067 9.83 21.7369 10.432 22.0421 11.118C22.3474 11.79 22.5 12.497 22.5 13.239C22.5 13.995 22.3404 14.723 22.0213 15.423C21.7022 16.123 21.2512 16.732 20.6685 17.25C20.0996 17.754 19.4336 18.104 18.6705 18.3C18.5178 19.098 18.1918 19.812 17.6923 20.442C17.2066 21.086 16.6031 21.59 15.8816 21.954C15.1601 22.318 14.39 22.5 13.5714 22.5ZM8.47225 19.644C9.12438 19.644 9.7002 19.497 10.1997 19.203L13.9668 17.019C14.1194 16.921 14.1957 16.788 14.1957 16.62V15.15L9.55451 17.838C9.12438 18.09 8.69425 18.09 8.26412 17.838L4.68434 15.759C4.68434 15.773 4.68434 15.794 4.68434 15.822C4.68434 15.85 4.68434 15.885 4.68434 15.927C4.68434 16.613 4.8439 17.243 5.16303 17.817C5.49604 18.377 5.95391 18.818 6.53667 19.14C7.11942 19.476 7.76462 19.644 8.47225 19.644Z"/>
+                </svg>
+            </button>
+            <button class="close-btn" id="toggleBtn" aria-label="Toggle sidebar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M5.63603 5.63604C6.02656 5.24552 6.65972 5.24552 7.05025 5.63604L12 10.5858L16.9497 5.63604C17.3403 5.24552 17.9734 5.24552 18.364 5.63604C18.7545 6.02657 18.7545 6.65973 18.364 7.05025L13.4142 12L18.364 16.9497C18.7545 17.3403 18.7545 17.9734 18.364 18.364C17.9734 18.7545 17.3403 18.7545 16.9497 18.364L12 13.4142L7.05025 18.364C6.65972 18.7545 6.02656 18.7545 5.63603 18.364C5.24551 17.9734 5.24551 17.3403 5.63603 16.9497L10.5858 12L5.63603 7.05025C5.24551 6.65973 5.24551 6.02657 5.63603 5.63604Z" fill="currentColor"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <!-- Main Actions -->
+            <div class="menu-section">
+                <a href="/" class="menu-item">
+                    <svg class="menu-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z"/>
+                    </svg>
+                    <span class="menu-text">New chat</span>
+                </a>
+
+                <div class="menu-item">
+                    <svg class="menu-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5S5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14Z"/>
+                    </svg>
+                    <span class="menu-text">Search chats</span>
+                </div>
+
+                <a href="/library" class="menu-item">
+                    <svg class="menu-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 2C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2H6ZM18 20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    <span class="menu-text">Library</span>
+                </a>
+            </div>
+
+            <!-- Chat History -->
+            <div class="menu-section">
+                <h2 class="menu-label">Chats</h2>
+                <a href="/c/684409c9-6c20-8011-9188-9681e6fc0b95" class="chat-item">
+                    <span class="chat-title">previous book chat history</span>
+                    <div class="chat-options">
+                        <button class="options-btn" aria-label="Chat options">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M3 12C3 10.8954 3.89543 10 5 10C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14C3.89543 14 3 13.1046 3 12ZM10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12ZM17 12C17 10.8954 17.8954 10 19 10C20.1046 10 21 10.8954 21 12C21 13.1046 20.1046 14 19 14C17.8954 14 17 13.1046 17 12Z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                    </div>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Footer -->
+        <div class="sidebar-footer">
+            <div class="profile-section">
+                <img class="profile-avatar" src="https://lh3.googleusercontent.com/a/AGNmyxb_YDklUhiX-1WgE0ahz33qIobkhx2DbyXaMFXSoQ=s96-c" alt="User avatar">
+                <span class="profile-name">Khushi Yadav</span>
+            </div>
+        </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="greeting">안녕하세요~~ 오늘은 어떤 책이 읽고 싶으신가요?</div>
+        <div class="greeting">
+            안녕~ 오늘은 어떤 책 읽고 싶어?
+        </div>
 
         <div class="tile-container">
-            <a href="{% url 'keyword_page' %}" class="tile">키워드</a>
-            <a href="{% url 'age_group_page' %}" class="tile">연령별</a>
-            <a href="{% url 'bestseller_page' %}" class="tile">베스트셀러</a>
+            <a href="#" class="tile">
+                <div>이번 달 인기
+                    키워드로 책 찾아보기
+                </div>
+            </a>
+            <a href="#" class="tile">
+                <div>연령대별 추천 도서 보기</div>
+            </a>
+            <a href="#" class="tile">
+                <div>이번 달 베스트셀러
+                    확인하기
+                </div>
+            </a>
         </div>
 
-        <div class="main-search-bar">
-            <input type="text" placeholder="책 제목을 입력하세요..." />
-            <button>검색</button>
-        </div>
+        <!-- Search Bar -->
+        <form class="composer-form">
+            <div class="composer-container">
+                <div class="composer-input-wrapper">
+                    <div class="actions-left">
+                        <button type="button" class="composer-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                            </svg>
+                        </button>
+                        <input type="file" class="file-input" id="file-input" multiple accept="*/*">
+                    </div>
+
+                    <textarea
+                        class="composer-input"
+                        placeholder="Type your message here..."
+                        rows="1"
+                        id="messageInput"
+                    ></textarea>
+
+                    <div class="actions-right">
+                        <button type="submit" class="composer-btn send-btn" id="sendBtn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
+    <script>
+        // Toggle sidebar functionality
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
 
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        // Auto-resize textarea
+        const messageInput = document.getElementById('messageInput');
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // File input trigger
+        document.querySelector('.actions-left .composer-btn').addEventListener('click', function() {
+            document.getElementById('file-input').click();
+        });
+
+        // Form submission
+        document.querySelector('.composer-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (message) {
+                console.log('Message sent:', message);
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+            }
+        });
+    </script>
 </body>
 </html>
