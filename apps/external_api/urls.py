@@ -6,6 +6,6 @@ from . import views
 urlpatterns = [
     path('keyword/', views.keyword_page, name='keyword_page'),
     path('age-group/', views.age_group_page, name='age_group_page'),
-    path('books/', views.book_list_page, name='book_list_page'),
+    path('books/by-keyword/', views.books_by_keyword, name='book_list_by_keyword'),
     path('bestsellers/', views.bestseller_page, name='bestseller_page'),
 ]

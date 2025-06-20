@@ -1,39 +1,56 @@
 <!DOCTYPE html>
-{% load static %}
+<!--<h1>DEBUG: {{ keywords }}</h1> -->
+<!-- {% load static %} -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Keyword Recommendation</title>
-    <link rel="stylesheet" href="{% static 'css/keyword.css' %}">
-    <script defer src="{% static 'js/sidebar.js' %}"></script>
+    <!-- link rel="stylesheet" href="{% static 'css/keyword.css' %}" -->
+    <!-- script defer src="{% static 'js/sidebar.js' %}"></script -->
+    <style>
+        .keyword-tile-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .keyword-tile {
+            padding: 1rem 2rem;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .keyword-tile:hover {
+            background-color: #ddd;
+        }
+    </style>
 </head>
 <body>
 
     <!-- Sidebar -->
-    <div class="sidebar">
-        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-        <ul class="library-list">
-            <li>서울 도서관</li>
-            <li>부산 중앙</li>
-            <li>대구 시립</li>
-        </ul>
-    </div>
 
     <!-- Main Content -->
     <div class="main-content">
         <div class="keyword-message">이 중에서 어떤 키워드가 끌리시나요?</div>
 
-        <div class="keyword-grid">
-            {% for keyword in keywords %}
-                <a href="{% url 'books_by_keyword' keyword=keyword %}" class="keyword-tile">{{ keyword }}</a>
+        <form method="post" action="{% url 'book_list_by_keyword' %}">
+          {% csrf_token %}
+          <div class="keyword-tile-container">
+            {% for kw in keywords %}
+              <button type="submit" name="keyword" value="{{ kw }}" class="keyword-tile">{{ kw }}</button>
             {% endfor %}
-        </div>
-
-        <div class="main-search-bar">
-            <input type="text" placeholder="책 제목을 입력하세요..." />
-            <button>검색</button>
-        </div>
+          </div>
+        </form>
     </div>
+
+
+        <!-- main search bar-->
 
 </body>
 </html>
