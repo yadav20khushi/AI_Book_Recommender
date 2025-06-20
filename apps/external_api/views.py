@@ -8,7 +8,7 @@ import os
 def keyword_page(request):
     api_key = os.environ.get("DATA4LIBRARY_API_KEY")
     recommender = KeywordRecommendationFlow(auth_key=api_key)
-    keywords = recommender.get_monthly_keywords()  # ✅ call on instance
+    keywords = recommender.get_monthly_keywords()
     return render(request, 'keyword_page.html', {'keywords': keywords})
 
 
