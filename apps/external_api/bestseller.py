@@ -7,7 +7,7 @@ class BestsellerRecommendation(ExternalAPIService):
         self.lib_code = lib_code
         self.url = f"https://data4library.kr/api/loanItemSrchByLib?authKey={self.auth_key}&libCode={self.lib_code}&pageSize=10&format=json"
 
-    @api_cache(ttl=3600)
+    @api_cache(3600)
     def get_bestseller_books(self):
         res = self.get_json(self.url, fallback_data={})
         parsed = []
