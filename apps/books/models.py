@@ -11,13 +11,16 @@ class Book(models.Model):
     def __str__(self):
         return f"{self.title} by {self.author}"
 '''
+------------------------------I dont think that we need this anymore------------------------------------
     Have to write a script to fetch lib data from 
     https://data4library.kr/api/libSrch?authKey=auth_key&format=json
-    and save to Library db
-'''
+    and save to Library db 
+    
+
 class Library(models.Model):
     name = models.CharField(max_length=255)
     lib_code = models.CharField(max_length=20, unique=True)
 
     def __str__(self):
         return f"{self.name} ({self.lib_code})"
+'''
