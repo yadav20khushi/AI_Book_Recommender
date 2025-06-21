@@ -23,10 +23,10 @@ class KeywordRecommendationFlow(ExternalAPIService):
         print("Fetching from URL:", url)
         # Logic to fetch top 10 keywords only
         res = self.get_json(url, fallback_data=[])
-        print("Raw response:", res)
+        #print("Raw response:", res)
         keywords = []
         words = res.get('response',{}).get('keywords',[])
-        print("Parsed keywords list:", words)
+        #print("Parsed keywords list:", words)
         for item in words[:10]:
             keyword_data = item.get("keyword", {})
             keywords.append(keyword_data.get("word", "N/A"))

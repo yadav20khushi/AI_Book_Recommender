@@ -2,7 +2,7 @@
     connect with returningUser_page.html, where just like YouTube, 10 books {their cover image, name and author}
     will already be displayed using the avid readers api, where will fetch previous browsed books isbn saved in
     book db/ userHistory db then pass this list of isbns to the api and display to user, where the user will select a book and then
-    user's_selected_book.py flow will be triggered
+    users_selected_book.py flow will be triggered
 '''
 from apps.external_api.base import ExternalAPIService
 from apps.caching.cache import api_cache

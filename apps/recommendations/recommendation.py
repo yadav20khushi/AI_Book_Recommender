@@ -52,8 +52,8 @@ def call_clova(book_metadata: list[dict], username: str):
         response.raise_for_status()
         result = response.json()
 
-        # Optional: return Clova's answer
-        clova_reply = result["choices"][0]["message"]["content"]
+        # return Clova's answer
+        return result["choices"][0]["message"]["content"]
 
     except Exception as e:
         return f"Failed to contact Clova: {e}"

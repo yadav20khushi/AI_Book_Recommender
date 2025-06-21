@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Clova Chat</title>
+    <link rel="stylesheet" href="{% static 'css/clova.css' %}">
+</head>
+<body>
+
+    <!-- Main chat content -->
+    <div class="chat-container">
+        <h2>📚 클로바 추천</h2>
+
+        <div class="chat-box">
+            {% if clova_response %}
+                {% for line in clova_response %}
+                    <div class="clova-message">
+                        {{ line }}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="clova-message">
+                    클로바의 응답을 불러오지 못했습니다.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Follow-up Tiles (Optional, placeholder for future) -->
+        <div class="follow-up-options">
+            <button>📖 유사한 책 추천</button>
+            <button>🚀 고급 추천</button>
+            <button>🏛 도서관 소장 확인</button>
+        </div>
+    </div>
+
+</body>
+</html>
