@@ -19,4 +19,4 @@ class BestsellerRecommendation(ExternalAPIService):
                 "author": book_data.get("authors"),
                 "cover": book_data.get("bookImageURL") #Display to user
             })
-        return parsed #Will be shown to user and the book selected by user will trigger user's_selected_book.py
+        return parsed #Will be shown to user and the book selected by user will trigger users_selected_book.py

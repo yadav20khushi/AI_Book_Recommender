@@ -1,0 +1,22 @@
+<h2>{{ source }}에 대한 추천 도서 목록</h2>
+<div class="book-list">
+  {% for book in books %}
+    <div class="book-card">
+
+      <!-- Clicking the cover image triggers Clova flow -->
+      <form method="post" action="{% url 'selected_book' %}">
+        {% csrf_token %}
+        <input type="hidden" name="isbn13" value="{{ book.isbn13 }}">
+        <button type="submit" style="border: none; background: none;">
+          <img src="{{ book.cover }}" alt="{{ book.title }}">
+        </button>
+      </form>
+
+      <h3>{{ book.title }}</h3>
+      <p>{{ book.author }}</p>
+
+    </div>
+  {% empty %}
+    <p>추천 도서를 찾을 수 없습니다.</p>
+  {% endfor %}
+</div>

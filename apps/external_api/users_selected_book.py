@@ -24,17 +24,10 @@ class UsersSelectedBook(ExternalAPIService):
             'description': data.get('description', 'N/A')
         }]
 
-        # Pass book description + username to Clova
-        call_clova(book_desc, username=self.username)
+        return book_desc
 
-        """
-            After when the clova responds i.e exaplains the description then tiles will pop up
-            with 1. similar books for readers  2. similar books for advanced readers 3. check book availability
-            then the user can choose from these or ask a follow up question, but every time the clova responds, at 
-            the end the pop ups will be shown.
-        """
 
-    @api_cache(ttl=3600)
+    @api_cache(3600)
     def get_similar_books(self, isbn13: str, recommendation_type: str = "reader"):
         if recommendation_type not in ["reader", "mania"]:
             recommendation_type = "reader"  # fallback
@@ -55,9 +48,9 @@ class UsersSelectedBook(ExternalAPIService):
                 "author": book_data.get("authors", "N/A"),
                 "cover": book_data.get("bookImageURL", "")
             })
-        return parsed  # Will be shown to user and the book selected by user will trigger user's_selected_book.py
+        return parsed  # Will be shown to user and the book selected by user will trigger users_selected_book.py
 
-    @api_cache(ttl=3600)
+    @api_cache(3600)
     def check_availability(self, isbn13: str, lib_code: str) -> str:
         """
         Trigger only if user wants to check book's availability
