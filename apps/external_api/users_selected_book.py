@@ -1,9 +1,9 @@
 from apps.external_api.base import ExternalAPIService
 from apps.caching.cache import api_cache
-
+import json
 class UsersSelectedBook(ExternalAPIService):
-    def __init__(self):
-        super().__init__()  # call parent init to set up auth_key etc.
+    def __init__(self, auth_key):
+        super().__init__(auth_key=auth_key)  # call parent init to set up auth_key.
 
     def get_description(self, isbn13: str):
 
@@ -27,28 +27,26 @@ class UsersSelectedBook(ExternalAPIService):
             recommendation_type = "reader"  # fallback
 
         url = f"http://data4library.kr/api/recommandList?authKey={self.auth_key}&isbn13={isbn13}&type={recommendation_type}&format=json"
-        '''
-            Later we can pass multiple isbns for personalised recommendations
-        '''
+
+        #print("SIMILAR BOOKS URL:", url)
 
         res = self.get_json(url, fallback_data={})
         parsed = []
 
+        #print("RESPONSE FROM API:", json.dumps(res, indent=2, ensure_ascii=False))
+
         for item in res.get("response", {}).get("docs", [])[:10]:
-            book_data = item.get("doc", {})
+            book_data = item.get("book", {})
             parsed.append({
-                "title": book_data.get("bookname", "N/A"),
-                "isbn13": book_data.get("isbn13", "N/A"),
-                "author": book_data.get("authors", "N/A"),
-                "cover": book_data.get("bookImageURL", "")
+                "title": book_data.get("bookname"),
+                "isbn13": book_data.get("isbn13"),
+                "author": book_data.get("authors"),
+                "cover": book_data.get("bookImageURL")
             })
-        return parsed  # Will be shown to user and the book selected by user will trigger users_selected_book.py
+        return parsed
 
     @api_cache(3600)
     def check_availability(self, isbn13: str, lib_code: str) -> str:
-        """
-        Trigger only if user wants to check book's availability
-        """
         url = f"https://data4library.kr/api/bookExist?authKey={self.auth_key}&libCode={lib_code}&isbn13={isbn13}&format=json"
         res = self.get_json(url)
         if res.get('response', {}).get('result', {}).get('hasBook') == 'Y':

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>문제가 발생했습니다</title>
+    <link rel="stylesheet" href="{% static 'css/error.css' %}">
+</head>
+<body>
+    <div class="error-container">
+        <h1>😥 오류가 발생했습니다</h1>
+        <p>죄송합니다. 요청을 처리하는 중 문제가 발생했어요.</p>
+        <a href="{% url 'home_page' %}" class="home-btn">홈으로 돌아가기</a>
+    </div>
+</body>
+</html>

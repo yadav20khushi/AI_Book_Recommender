@@ -33,10 +33,6 @@ class KeywordRecommendationFlow(ExternalAPIService):
 
         return keywords #Connect with keyword_page.html
 
-    """
-        When the user selects a keyword on keyword_page.html, then this api will be triggered and the list 
-        of books will be shown on bookList_page.html
-    """
     @api_cache(3600)
     def get_books_by_keyword(self, keyword): #The user's selected keyword
         url = f"https://data4library.kr/api/srchBooks?authKey={self.auth_key}&keyword={keyword}&format=json"
