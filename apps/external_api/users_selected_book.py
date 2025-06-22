@@ -1,18 +1,12 @@
-from apps.recommendations.recommendation import call_clova
 from apps.external_api.base import ExternalAPIService
 from apps.caching.cache import api_cache
 
 class UsersSelectedBook(ExternalAPIService):
-    def __init__(self, username: str):
-        self.username = username
+    def __init__(self):
         super().__init__()  # call parent init to set up auth_key etc.
 
     def get_description(self, isbn13: str):
-        """
-        Trigger this for the book user selects from the bookList_page.html.
-        Fetch book description and pass metadata + description to Clova.
-        And display on clovaChat_page.html
-        """
+
         url = f"https://data4library.kr/api/usageAnalysisList?authKey={self.auth_key}&isbn13={isbn13}&format=json&loanInfoYN=N"
         res = self.get_json(url, fallback_data={})
         data = res.get('response', {}).get('book', {})

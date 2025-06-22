@@ -5,34 +5,84 @@
     <meta charset="UTF-8">
     <title>Clova Chat</title>
     <link rel="stylesheet" href="{% static 'css/clova.css' %}">
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function sendFollowUp() {
+            const userInput = document.getElementById("followup-input").value;
+            if (!userInput) return;
+
+            fetch("{% url 'followup_question' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: new URLSearchParams({
+                    'user_input': userInput
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML += `<div class="user-message">${userInput}</div>`;
+                chatBox.innerHTML += `<div class="clova-message">${data.clova_response}</div>`;
+                document.getElementById("followup-input").value = "";
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+    </script>
+    <style>
+        .chat-container { max-width: 700px; margin: 2rem auto; padding: 1rem; border: 1px solid #ccc; border-radius: 12px; background: #f9f9f9; }
+        .chat-box { max-height: 400px; overflow-y: auto; padding: 1rem; margin-bottom: 1rem; }
+        .clova-message { background: #e0f0ff; padding: 0.8rem; border-radius: 10px; margin: 0.5rem 0; }
+        .user-message { background: #ffe4e1; padding: 0.8rem; border-radius: 10px; margin: 0.5rem 0; text-align: right; }
+        .follow-up-input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 8px; }
+        .follow-up-button { margin-top: 0.5rem; padding: 0.5rem 1rem; border: none; background: #4caf50; color: white; border-radius: 8px; cursor: pointer; }
+        .follow-up-options button { margin: 0.3rem; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; }
+    </style>
 </head>
 <body>
 
-    <!-- Main chat content -->
-    <div class="chat-container">
-        <h2>📚 클로바 추천</h2>
+<div class="chat-container">
+    <h2>📚 클로바 추천</h2>
 
-        <div class="chat-box">
-            {% if clova_response %}
-                {% for line in clova_response %}
-                    <div class="clova-message">
-                        {{ line }}
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="clova-message">
-                    클로바의 응답을 불러오지 못했습니다.
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Follow-up Tiles (Optional, placeholder for future) -->
-        <div class="follow-up-options">
-            <button>📖 유사한 책 추천</button>
-            <button>🚀 고급 추천</button>
-            <button>🏛 도서관 소장 확인</button>
-        </div>
+    <div id="chat-box" class="chat-box">
+        {% if clova_response %}
+            <div class="clova-message">
+                {{ clova_response|linebreaks }}
+            </div>
+        {% else %}
+            <div class="clova-message">
+                클로바의 응답을 불러오지 못했습니다.
+            </div>
+        {% endif %}
     </div>
+
+    <!-- Follow-up Input -->
+    <input type="text" id="followup-input" class="follow-up-input" placeholder="질문을 입력하세요...">
+    <button class="follow-up-button" onclick="sendFollowUp()">질문하기</button>
+
+    <!-- Follow-up Tiles -->
+    <div class="follow-up-options">
+        <button>📖 유사한 책 추천</button>
+        <button>🚀 고급 추천</button>
+        <button>🏛 수표책 가용성</button>
+    </div>
+</div>
 
 </body>
 </html>
