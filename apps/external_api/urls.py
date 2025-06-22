@@ -9,5 +9,5 @@ urlpatterns = [
     path('age-group/books/', views.book_list_by_agegroup, name='book_list_by_agegroup'),
     path('keyword/books/', views.books_by_keyword, name='book_list_by_keyword'),
     path('books/by-keyword/', views.books_by_keyword, name='book_list_by_keyword'),
-    path('bestsellers/', views.bestseller_page, name='bestseller_page'),
+    path('bestsellers/', views.bestseller_books, name='bestseller_books'),
 ]
