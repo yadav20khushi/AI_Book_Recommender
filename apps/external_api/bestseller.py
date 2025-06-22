@@ -3,7 +3,8 @@ from apps.caching.cache import api_cache
 
 #User will land here if they select Bestseller
 class BestsellerRecommendation(ExternalAPIService):
-    def __init__(self, lib_code="127058"): #lib_code by default else pick what user chooses from the interface
+    def __init__(self,auth_key, lib_code="127058"): #lib_code by default else pick what user chooses from the interface
+        self.auth_key = auth_key
         self.lib_code = lib_code
         self.url = f"https://data4library.kr/api/loanItemSrchByLib?authKey={self.auth_key}&libCode={self.lib_code}&pageSize=10&format=json"
 
@@ -19,4 +20,4 @@ class BestsellerRecommendation(ExternalAPIService):
                 "author": book_data.get("authors"),
                 "cover": book_data.get("bookImageURL") #Display to user
             })
-        return parsed #Will be shown to user and the book selected by user will trigger users_selected_book.py
+        return parsed
