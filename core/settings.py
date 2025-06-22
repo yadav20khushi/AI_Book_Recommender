@@ -17,8 +17,8 @@ import os
 
 load_dotenv()  # load .env variables
 
-EXTERNAL_API_KEY = os.getenv("EXTERNAL_API_KEY")
-EXTERNAL_API_BASE_URL = os.getenv("EXTERNAL_API_BASE_URL")
+DATA4LIBRARY_API_KEY = os.getenv("DATA4LIBRARY_API_KEY")
+CLOVA_API_KEY = os.getenv("CLOVA_API_KEY")
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
