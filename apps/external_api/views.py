@@ -3,6 +3,7 @@
 # Create your views here.
 from django.shortcuts import render, redirect
 from apps.external_api.keyword_flow import KeywordRecommendationFlow
+from apps.external_api.age_group import AgeGroupRecommendationFlow
 from django.views.decorators.csrf import csrf_exempt
 import os
 
@@ -22,7 +23,18 @@ def books_by_keyword(request):
             #print("Books returned:", books)
             return render(request, 'bookList_page.html', {'books': books, 'keyword': selected_keyword})
     return redirect('keyword_page')
+
 def age_group_page(request):
     return render(request, 'ageGroup_page.html')
+
+@csrf_exempt
+def book_list_by_agegroup(request):
+    if request.method == "POST":
+        selected_group = request.POST.get("age_group", "overall")  # fallback to "overall"
+        recommender = AgeGroupRecommendationFlow(auth_key=os.environ.get("DATA4LIBRARY_API_KEY"))
+        books = recommender.get_books_by_agegroup(selected_group)
+        return render(request, 'bookList_page.html', {'books': books})
+    return redirect('age_group_page')  # fallback
+
 def bestseller_page(request):
     return render(request, 'bestseller_page.html')  # Optional page
