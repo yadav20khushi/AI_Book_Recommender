@@ -77,11 +77,31 @@
     <button class="follow-up-button" onclick="sendFollowUp()">질문하기</button>
 
     <!-- Follow-up Tiles -->
-    <div class="follow-up-options">
-        <button>📖 유사한 책 추천</button>
-        <button>🚀 고급 추천</button>
-        <button>🏛 수표책 가용성</button>
+   <div class="follow-up-options">
+        <form method="post" action="{% url 'handle_recommendation_type' %}">
+            {% csrf_token %}
+            <input type="hidden" name="isbn13" value="{{ isbn13 }}">
+            <input type="hidden" name="recommendation_type" value="reader">
+            <button type="submit">유사한 책 추천</button>
+        </form>
+
+        <form method="post" action="{% url 'handle_recommendation_type' %}">
+            {% csrf_token %}
+            <input type="hidden" name="isbn13" value="{{ isbn13 }}">
+            <input type="hidden" name="recommendation_type" value="mania">
+            <button type="submit">고급 추천</button>
+        </form>
+
+
+        <form method="post" action="{% url 'check_availability' %}">
+            {% csrf_token %}
+            <input type="hidden" name="isbn13" value="{{ isbn13 }}">
+            <input type="hidden" name="lib_code" value="127058">  <!-- Replace with dynamic code later -->
+            <button type="submit">책 가용성 확인</button>
+        </form>
+
     </div>
+
 </div>
 
 </body>

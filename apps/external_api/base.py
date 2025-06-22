@@ -1,11 +1,12 @@
 import requests
 import logging
+import os
 
 class ExternalAPIService:
-    def __init__(self):
-        from django.conf import settings
-        self.auth_key = settings.DATA4LIBRARY_API_KEY
+    def __init__(self, auth_key=None):
+        self.auth_key = auth_key or os.environ.get("DATA4LIBRARY_API_KEY")
         self.logger = logging.getLogger(__name__)
+
 
     def get_json(self, url, fallback_data=None):
         try:
