@@ -10,10 +10,10 @@ class ReturningUserRecommendationFlow(ExternalAPIService):
         super().__init__()
 
     def get_user_isbns(self):
-        pdb.set_trace()
+        #pdb.set_trace()
         histories = (
             UserHistory.objects
-            .filter(username=self.username)
+            .filter(user__username=self.username)
             .order_by('-session_end')
             .select_related('book')
         )
@@ -26,14 +26,14 @@ class ReturningUserRecommendationFlow(ExternalAPIService):
             if isbn and isbn not in seen:
                 seen.add(isbn)
                 ordered_isbns.append(isbn)
-            if len(ordered_isbns) == 5:
+            if len(ordered_isbns) == 3:
                 break
 
         return ordered_isbns
 
     @api_cache(3600)
     def get_avid_reader_recommendations(self):
-        pdb.set_trace()
+        #pdb.set_trace()
         isbns = self.get_user_isbns()
         if not isbns:
             return []
