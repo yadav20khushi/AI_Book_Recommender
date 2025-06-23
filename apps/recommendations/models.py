@@ -5,14 +5,20 @@ from apps.books.models import Book
 # Create your models here.
 
 class UserHistory(models.Model):
-    username = models.CharField(max_length=100)  # or use ForeignKey if auth
-    book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    session_start = models.DateTimeField()
-    session_end = models.DateTimeField()
-
-    def session_duration(self):
-        return self.session_end - self.session_start
+    username = models.CharField(max_length=150, unique=True)
+    password = models.CharField(max_length=128, default="temp123")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True, blank=True)
+    session_start = models.DateTimeField(auto_now_add=True)
+    session_end = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.username} selected {self.book.title} on {self.session_end}"
+        return self.username
+
+class ChatHistory(models.Model):
+    user = models.ForeignKey("UserHistory", on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    messages = models.JSONField()
+
+    def __str__(self):
+        return f"{self.user.username} - {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
 
