@@ -1,7 +1,11 @@
 import requests
 import os
+
+from django.utils import timezone
+
 from apps.recommendations.models import ChatHistory, UserHistory
 from apps.books.models import Book
+from django.contrib.auth.models import User
 
 
 class ClovaBookChatHandler:
@@ -53,13 +57,14 @@ class ClovaBookChatHandler:
             return f"Clova API 호출에 실패했습니다: {e}"
 
     def save_user_history(self, book_data: dict, clova_response: str):
+
         title = book_data.get("title", "제목 없음")
         author = book_data.get("authors", "저자 정보 없음")
         description = book_data.get("description", "설명 없음")
         isbn13 = book_data.get("isbn13", "N/A")
         cover = book_data.get("cover", "")
 
-        # Ensure the book exists in Book table
+        # Ensure book exists
         book_obj, _ = Book.objects.get_or_create(
             isbn13=isbn13,
             defaults={
@@ -70,22 +75,29 @@ class ClovaBookChatHandler:
             }
         )
 
-        # Find user in UserHistory
-        try:
-            user = UserHistory.objects.get(username=self.username)
-        except UserHistory.DoesNotExist:
-            user = None  # Or handle this case differently
+        # Fetch actual Django User object
+        user = User.objects.filter(username=self.username).first()
 
-        if user:
-            # Save to ChatHistory
-            ChatHistory.objects.create(
-                user=user,
-                messages=[
-                    {"role": "system", "content": "당신은 책을 잘 아는 친절한 도우미입니다."},
-                    {"role": "user", "content": self.generate_prompt(title, author, description)},
-                    {"role": "assistant", "content": clova_response}
-                ]
-            )
+        if not user:
+            return  # Or raise error
+
+        # Create a new UserHistory entry (now linked to Django user FK)
+        user_history = UserHistory.objects.create(
+            user=user,
+            book=book_obj,
+            session_start=timezone.now(),
+            session_end=timezone.now()
+        )
+
+        # Save chat history linked to the above user history
+        ChatHistory.objects.create(
+            user_history=user_history,
+            messages=[
+                {"role": "system", "content": "당신은 책을 잘 아는 친절한 도우미입니다."},
+                {"role": "user", "content": self.generate_prompt(title, author, description)},
+                {"role": "assistant", "content": clova_response}
+            ]
+        )
 
     def start_chat(self, book_metadata: list[dict]) -> dict:
         if not book_metadata:
