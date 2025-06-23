@@ -1,7 +1,6 @@
 import requests
 import os
-from django.utils import timezone
-from apps.recommendations.models import UserHistory
+from apps.recommendations.models import ChatHistory, UserHistory
 from apps.books.models import Book
 
 
@@ -60,6 +59,7 @@ class ClovaBookChatHandler:
         isbn13 = book_data.get("isbn13", "N/A")
         cover = book_data.get("cover", "")
 
+        # Ensure the book exists in Book table
         book_obj, _ = Book.objects.get_or_create(
             isbn13=isbn13,
             defaults={
@@ -70,14 +70,22 @@ class ClovaBookChatHandler:
             }
         )
 
-        now = timezone.now()
-        UserHistory.objects.create(
-            username=self.username,
-            book=book_obj,
-            session_start=now,
-            session_end=now,
-            # response_log=clova_response  # enable if field exists
-        )
+        # Find user in UserHistory
+        try:
+            user = UserHistory.objects.get(username=self.username)
+        except UserHistory.DoesNotExist:
+            user = None  # Or handle this case differently
+
+        if user:
+            # Save to ChatHistory
+            ChatHistory.objects.create(
+                user=user,
+                messages=[
+                    {"role": "system", "content": "당신은 책을 잘 아는 친절한 도우미입니다."},
+                    {"role": "user", "content": self.generate_prompt(title, author, description)},
+                    {"role": "assistant", "content": clova_response}
+                ]
+            )
 
     def start_chat(self, book_metadata: list[dict]) -> dict:
         if not book_metadata:
