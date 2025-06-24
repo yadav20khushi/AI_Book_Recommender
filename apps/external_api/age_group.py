@@ -8,6 +8,7 @@ class AgeGroupRecommendationFlow(ExternalAPIService):
         self.lib_code = lib_code
         self.url = f"https://data4library.kr/api/extends/loanItemSrchByLib?authKey={self.auth_key}&libCode={self.lib_code}&format=json"
 
+        #Need to store api response separately so that when we hit different tiles, api isnt hit over and again!
     @api_cache(3600)
     def get_books_by_agegroup(self, age_group):
         res = self.get_json(self.url, fallback_data={})

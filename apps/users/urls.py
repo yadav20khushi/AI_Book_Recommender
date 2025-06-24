@@ -9,4 +9,6 @@ urlpatterns = [
     path("home/", views.home_page_view, name="home_page"),
     path("returning/", views.returning_user, name="returning_user"),
     path("signout/", views.signout_view, name="signout"),
+    path("chat/load/",views.load_chat_view, name="load_chat"),
+
 ]

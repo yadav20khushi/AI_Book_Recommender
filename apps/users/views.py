@@ -1,7 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
+from apps.recommendations.models import ChatHistory
 from apps.recommendations.models import UserHistory
+from django.contrib.auth.models import User
 from apps.external_api.personal_recommendations import ReturningUserRecommendationFlow
 
 
@@ -10,6 +12,16 @@ def home_page_view(request):
         return redirect("login")
     return render(request, "home_page.html")
 
+def load_chat_view(request):
+    if request.method == "POST":
+        chat_id = request.POST.get("chat_id")
+        chat = get_object_or_404(ChatHistory, id=chat_id)
+
+        return render(request, "clovaChat_page.html", {
+            "messages": chat.messages,
+            "chat_id": chat.id,
+            "book_title": chat.user_history.book.title,
+        })
 
 def login_view(request):
     if request.method == "POST":

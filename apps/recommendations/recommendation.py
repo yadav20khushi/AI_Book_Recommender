@@ -92,6 +92,7 @@ class ClovaBookChatHandler:
         # Save chat history linked to the above user history
         ChatHistory.objects.create(
             user_history=user_history,
+            title=title,
             messages=[
                 {"role": "system", "content": "당신은 책을 잘 아는 친절한 도우미입니다."},
                 {"role": "user", "content": self.generate_prompt(title, author, description)},

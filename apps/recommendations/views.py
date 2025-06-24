@@ -3,6 +3,8 @@ from apps.recommendations.recommendation import ClovaBookChatHandler
 from apps.external_api.users_selected_book import UsersSelectedBook
 from django.http import JsonResponse
 from django.http import HttpResponse
+from apps.recommendations.models import ChatHistory
+from django.contrib.auth.models import User
 import os
 
 def selected_book(request):
@@ -22,7 +24,7 @@ def selected_book(request):
             return render(request, "clovaChat_page.html", {
                 "clova_response": result["response"],
                 "chat_session": result["session"],
-                "isbn13": isbn13
+                "isbn13": isbn13,
             })
 
 

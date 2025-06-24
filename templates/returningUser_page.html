@@ -1,16 +1,53 @@
-<h2>{{ username }} 님의 이전 추천 기록</h2>
+{% comment %} Sidebar Section - Chat History {% endcomment %}
+<div class="sidebar">
+    <h3>📚 대화 히스토리</h3>
+    <p>총 {{ chat_history|length }}개</p>
+    <ul class="chat-history-list">
+        {% for chat in chat_history %}
+        <li class="chat-history-item">
+            <form method="post" action="{% url 'load_chat' %}">
+                {% csrf_token %}
+                <input type="hidden" name="chat_id" value="{{ chat.id }}">
+                <button type="submit" class="chat-history-btn">
+                    {{ chat.user_history.book.title|default:"(제목 없음)"|truncatechars:25 }}
+                </button>
+            </form>
+        </li>
+        {% empty %}
+        <li><em>히스토리가 없습니다</em></li>
+        {% endfor %}
+    </ul>
 
-<ul>
-  {% for book in books %}
-    <li>
-      <form method="post" action="{% url 'selected_book' %}">
+    <form method="post" action="{% url 'signout' %}" class="logout-form">
         {% csrf_token %}
-        <input type="hidden" name="isbn13" value="{{ book.isbn13 }}">
-        <button type="submit">
-          <img src="{{ book.cover }}" alt="Cover" style="width:50px; height:auto;">
-          {{ book.title }} - {{ book.author }}
-        </button>
-      </form>
-    </li>
-  {% endfor %}
-</ul>
+        <button type="submit" class="logout-btn">로그아웃</button>
+    </form>
+</div>
+
+{% comment %} Main Content Area: Book List {% endcomment %}
+<div class="main-content">
+    <div class="content-header">
+        <h2>{{ username }}님의 추천 도서 목록</h2>
+        <p>책을 클릭하면 대화를 시작합니다.</p>
+    </div>
+
+    {% if books %}
+    <div class="books-grid">
+        {% for book in books %}
+        <div class="book-card">
+            <form method="post" action="{% url 'selected_book' %}">
+                {% csrf_token %}
+                <input type="hidden" name="isbn13" value="{{ book.isbn13 }}">
+                <button type="submit">
+                    <img src="{{ book.cover }}" alt="표지" class="book-cover">
+                    <div class="book-title">{{ book.title }}</div>
+                    <div class="book-author">{{ book.author }}</div>
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>추천된 책이 없습니다. 첫 대화를 시작해보세요!</p>
+    {% endif %}
+</div>

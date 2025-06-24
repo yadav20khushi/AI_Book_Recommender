@@ -497,6 +497,20 @@
                 {% csrf_token %}
                 <button type="submit">로그아웃</button>
             </form>
+            <div class="sidebar">
+              <h3>대화 히스토리</h3>
+              <ul>
+                {% for chat in chat_history %}
+                  <li>
+                    <form method="post" action="{% url 'load_chat' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="chat_id" value="{{ chat.id }}">
+                      <button type="submit">{{ chat.title|truncatechars:25 }}</button>
+                    </form>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
 
         </div>
 

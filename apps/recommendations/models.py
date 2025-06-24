@@ -14,6 +14,7 @@ class UserHistory(models.Model):
 
 
 class ChatHistory(models.Model):
+    title = models.CharField(max_length=255, blank=True)
     user_history = models.ForeignKey(UserHistory, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     messages = models.JSONField()
