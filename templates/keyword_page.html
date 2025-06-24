@@ -2,6 +2,7 @@
 <!--<h1>DEBUG: {{ keywords }}</h1> -->
 <!-- {% load static %} -->
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Keyword Recommendation</title>
@@ -31,6 +32,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- Sidebar -->
@@ -40,18 +42,18 @@
         <div class="keyword-message">이 중에서 어떤 키워드가 끌리시나요?</div>
 
         <form method="post" action="{% url 'book_list_by_keyword' %}">
-          {% csrf_token %}
-          <div class="keyword-tile-container">
-            {% for kw in keywords %}
-              <button type="submit" name="keyword" value="{{ kw }}" class="keyword-tile">{{ kw }}</button>
-            {% endfor %}
-          </div>
+            {% csrf_token %}
+            <div class="keyword-tile-container">
+                {% for kw in keywords %}
+                <button type="submit" name="keyword" value="{{ kw }}" class="keyword-tile">{{ kw }}</button>
+                {% endfor %}
+            </div>
         </form>
     </div>
 
 
-        <!-- main search bar-->
+    <!-- main search bar-->
 
 </body>
-</html>
 
+</html>

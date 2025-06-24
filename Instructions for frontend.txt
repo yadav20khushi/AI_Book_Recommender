@@ -1,0 +1,42 @@
+Backend Setup (Django)
+
+Activate virtual environment:
+
+genta\Scripts\activate
+
+
+
+
+Frontend Setup (React + Vite)
+
+1. Navigate to the frontend folder:
+
+cd Frontend
+
+
+2. Install dependencies:
+
+
+npm install
+
+
+3. Start the Vite dev server:
+
+
+npm run dev
+
+
+The frontend runs at: `http://localhost:5173/`
+
+
+Required NPM Modules
+
+These are already included in `package.json`, but here are the key modules:
+
+npm install react-router-dom
+npm install react-hot-toast
+npm install lucide-react
+npm install @types/react @types/react-dom
+
+
+

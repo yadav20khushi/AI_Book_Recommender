@@ -19,6 +19,9 @@ load_dotenv()  # load .env variables
 
 EXTERNAL_API_KEY = os.getenv("EXTERNAL_API_KEY")
 EXTERNAL_API_BASE_URL = os.getenv("EXTERNAL_API_BASE_URL")
+DATA4LIBRARY_API_KEY = os.getenv("DATA4LIBRARY_API_KEY")
+
+CLOVA_API_KEY = os.getenv("CLOVA_API_KEY")
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -51,9 +54,15 @@ INSTALLED_APPS = [
     'apps.books',
     'apps.external_api',
     'apps.users',
+
+    #For Frontend
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    #For Frontend
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,6 +71,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'core.urls'
 
@@ -150,3 +160,46 @@ CACHES = {
     }
 }
 
+
+#For Frontend
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ]
+}
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  
+    "http://127.0.0.1:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False

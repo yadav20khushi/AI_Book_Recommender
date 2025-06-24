@@ -23,20 +23,16 @@ class KeywordRecommendationFlow(ExternalAPIService):
         print("Fetching from URL:", url)
         # Logic to fetch top 10 keywords only
         res = self.get_json(url, fallback_data=[])
-        print("Raw response:", res)
+        #print("Raw response:", res)
         keywords = []
         words = res.get('response',{}).get('keywords',[])
-        print("Parsed keywords list:", words)
+        #print("Parsed keywords list:", words)
         for item in words[:10]:
             keyword_data = item.get("keyword", {})
             keywords.append(keyword_data.get("word", "N/A"))
 
         return keywords #Connect with keyword_page.html
 
-    """
-        When the user selects a keyword on keyword_page.html, then this api will be triggered and the list 
-        of books will be shown on bookList_page.html
-    """
     @api_cache(3600)
     def get_books_by_keyword(self, keyword): #The user's selected keyword
         url = f"https://data4library.kr/api/srchBooks?authKey={self.auth_key}&keyword={keyword}&format=json"
@@ -51,6 +47,5 @@ class KeywordRecommendationFlow(ExternalAPIService):
                 "cover": book_data.get("bookImageURL") #Display to user
             })
         return parsed #Connect with bookList_page.html
-
 
 
