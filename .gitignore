@@ -1,6 +1,7 @@
 .venv/
 .idea/
 
+
 # Python
 __pycache__/
 *.py[cod]
@@ -27,3 +28,6 @@ test_clova.py
 Archived.py
 search bar.html
 side bar.html
+
+# Virtual environment
+genta/

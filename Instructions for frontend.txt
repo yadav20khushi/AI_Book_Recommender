@@ -1,12 +1,3 @@
-Backend Setup (Django)
-
-Activate virtual environment:
-
-genta\Scripts\activate
-
-
-
-
 Frontend Setup (React + Vite)
 
 1. Navigate to the frontend folder:
