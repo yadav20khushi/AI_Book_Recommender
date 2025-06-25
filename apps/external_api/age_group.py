@@ -9,8 +9,10 @@ class AgeGroupRecommendationFlow(ExternalAPIService):
         self.url = f"https://data4library.kr/api/extends/loanItemSrchByLib?authKey={self.auth_key}&libCode={self.lib_code}&format=json"
 
     @api_cache(3600)
+    def get_cached_json(self):
+        return self.get_json(self.url, fallback_data={})
+
     def get_books_by_agegroup(self, age_group):
-        res = self.get_json(self.url, fallback_data={})
 
         age_group_mapping = {
             "overall": "loanBooks",
@@ -23,6 +25,7 @@ class AgeGroupRecommendationFlow(ExternalAPIService):
 
         # Fallback to 'loanBooks' if invalid
         book_key = age_group_mapping.get(age_group.lower(), "loanBooks")
+        res = self.get_cached_json()
         raw_books = res.get("response", {}).get(book_key, [])
 
         books = []
