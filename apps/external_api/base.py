@@ -10,7 +10,7 @@ class ExternalAPIService:
 
     def get_json(self, url, fallback_data=None):
         try:
-            resp = requests.get(url, timeout=5)
+            resp = requests.get(url, timeout=10)
             resp.raise_for_status()
             return resp.json()
         except Exception as e:
