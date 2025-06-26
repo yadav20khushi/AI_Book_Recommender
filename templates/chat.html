@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>도서 챗봇</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+            color: #f8f9fa;
+        }
+        
+        .chat-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 24px 32px;
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #00d4aa;
+            background: linear-gradient(90deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 119, 255, 0.1) 100%);
+            border-bottom: 2px solid rgba(0, 212, 170, 0.2);
+            text-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+            position: relative;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 212, 170, 0.05) 50%, transparent 100%);
+            pointer-events: none;
+        }
+        
+        .chat-window {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 32px;
+            background: transparent;
+            position: relative;
+            min-height: 0;
+            max-width: 100%;
+        }
+        
+        .chat-bubble {
+            margin: 20px 0;
+            padding: 20px 28px;
+            border-radius: 20px;
+            max-width: 85%;
+            display: block;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            clear: both;
+        }
+        
+        .chat-bubble:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .user {
+            background: linear-gradient(135deg, #00d4aa 0%, #0077ff 100%);
+            color: #ffffff;
+            float: right;
+            margin-left: 15%;
+            border-bottom-right-radius: 8px;
+        }
+        
+        .user::before {
+            content: '';
+            position: absolute;
+            right: -8px;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-left: 8px solid #0077ff;
+            border-top: 8px solid transparent;
+        }
+        
+        .bot {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            color: #f7fafc;
+            float: left;
+            margin-right: 15%;
+            border-bottom-left-radius: 8px;
+            border: 1px solid rgba(0, 212, 170, 0.2);
+        }
+        
+        .bot::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-right: 8px solid #4a5568;
+            border-top: 8px solid transparent;
+        }
+        
+        .chat-input-container {
+            padding: 24px 32px;
+            background: linear-gradient(180deg, rgba(26, 26, 46, 0.9) 0%, rgba(15, 15, 15, 0.95) 100%);
+            border-top: 2px solid rgba(0, 212, 170, 0.2);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        
+        .chat-input-row {
+            display: flex;
+            gap: 16px;
+            max-width: 100%;
+            align-items: stretch;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 18px 24px;
+            border-radius: 12px;
+            border: 2px solid rgba(0, 212, 170, 0.3);
+            font-size: 1.1rem;
+            background: rgba(45, 55, 72, 0.8);
+            color: #f7fafc;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            min-width: 0;
+        }
+        
+        .chat-input:focus {
+            border-color: #00d4aa;
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1), 0 0 20px rgba(0, 212, 170, 0.2);
+            background: rgba(45, 55, 72, 0.9);
+        }
+        
+        .chat-input::placeholder {
+            color: #a0aec0;
+        }
+        
+        .chat-send {
+            padding: 18px 32px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #00d4aa 0%, #0077ff 100%);
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(0, 212, 170, 0.3);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .chat-send:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 212, 170, 0.4);
+            background: linear-gradient(135deg, #00e6c0 0%, #0088ff 100%);
+        }
+        
+        .chat-send:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .chat-send:disabled {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            color: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .book-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            width: 100%;
+            max-width: 100%;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 24px;
+            justify-items: center;
+        }
+        
+        .book-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            background: linear-gradient(135deg, rgba(45, 55, 72, 0.8) 0%, rgba(74, 85, 104, 0.8) 100%);
+            border-radius: 16px;
+            margin-bottom: 0;
+            padding: 24px 18px 18px 18px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            min-width: 220px;
+            max-width: 220px;
+            border: 1px solid rgba(0, 212, 170, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .book-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(0, 212, 170, 0.3);
+        }
+        
+        .book-cover {
+            width: 90px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .book-item:hover .book-cover {
+            transform: scale(1.05);
+        }
+        
+        .book-rank {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(135deg, #00d4aa 0%, #0077ff 100%);
+            color: #fff;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .book-info {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .book-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #00d4aa;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .book-meta {
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        
+        .book-meta:last-child {
+            margin-bottom: 0;
+        }
+        
+        .video-btn {
+            margin-top: 10px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #00d4aa 0%, #0077ff 100%);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.2);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .video-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #00e6c0 0%, #0088ff 100%);
+        }
+        
+        .download-btn {
+            margin-top: 10px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #0077ff 0%, #00d4aa 100%);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.2);
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .download-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #0088ff 0%, #00e6c0 100%);
+        }
+        
+        /* Enhanced scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+            background: rgba(26, 26, 46, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00d4aa 0%, #0077ff 100%);
+            border-radius: 6px;
+            border: 2px solid rgba(26, 26, 46, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #00e6c0 0%, #0088ff 100%);
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(45, 55, 72, 0.3);
+            border-radius: 6px;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .chat-header {
+                font-size: 2.2rem;
+                padding: 20px 24px;
+            }
+            
+            .chat-window {
+                padding: 24px;
+            }
+            
+            .chat-input-container {
+                padding: 20px 24px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .chat-header {
+                font-size: 1.8rem;
+                padding: 16px 20px;
+                letter-spacing: 2px;
+            }
+            
+            .chat-window {
+                padding: 16px;
+            }
+            
+            .chat-input-container {
+                padding: 16px 20px;
+            }
+            
+            .chat-bubble {
+                max-width: 90%;
+                padding: 16px 20px;
+                font-size: 1rem;
+            }
+            
+            .user {
+                margin-left: 10%;
+            }
+            
+            .bot {
+                margin-right: 10%;
+            }
+            
+            .book-cover {
+                width: 70px;
+                height: 95px;
+            }
+            
+            .book-item {
+                gap: 16px;
+                padding: 20px;
+            }
+            
+            .book-title {
+                font-size: 1.1rem;
+            }
+            
+            .book-meta {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .chat-header {
+                font-size: 1.5rem;
+                padding: 12px 16px;
+                letter-spacing: 1px;
+            }
+            
+            .chat-window {
+                padding: 12px;
+            }
+            
+            .chat-input-container {
+                padding: 12px 16px;
+            }
+            
+            .chat-input-row {
+                gap: 12px;
+            }
+            
+            .chat-input {
+                padding: 14px 18px;
+                font-size: 1rem;
+            }
+            
+            .chat-send {
+                padding: 14px 24px;
+                font-size: 1rem;
+            }
+            
+            .book-cover {
+                width: 60px;
+                height: 80px;
+            }
+            
+            .book-item {
+                gap: 12px;
+                padding: 16px;
+            }
+        }
+        
+        /* Loading animation */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        /* Smooth animations */
+        .chat-bubble {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Focus management */
+        .chat-input:focus {
+            outline: none;
+        }
+        
+        /* Ensure no horizontal overflow */
+        .chat-container * {
+            max-width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        /* Modal styles */
+        .modal-bg {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-bg.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 18px;
+            padding: 24px 24px 16px 24px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            position: relative;
+            min-width: 320px;
+            max-width: 90vw;
+            width: 700px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .modal-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .modal-title {
+            display: none;
+        }
+        .modal-video {
+            width: 100%;
+            max-width: 660px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            background: #000;
+            max-height: 70vh;
+        }
+        .modal-download {
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div id="chat-window" class="chat-window"></div>
+    <div class="chat-input-container">
+        <div class="chat-input-row">
+            <input id="chat-input" class="chat-input" type="text" placeholder="메시지를 입력하세요..." autofocus />
+            <button id="chat-send" class="chat-send">전송</button>
+        </div>
+    </div>
+</div>
+<script>
+const chatWindow = document.getElementById('chat-window');
+const chatInput = document.getElementById('chat-input');
+const chatSend = document.getElementById('chat-send');
+
+function renderBookList(text) {
+    // Look for BOOKLIST_JSON block
+    const jsonMarker = 'BOOKLIST_JSON:';
+    const idx = text.indexOf(jsonMarker);
+    if (idx !== -1) {
+        const jsonBlock = text.slice(idx + jsonMarker.length).trim();
+        const lines = jsonBlock.split(/\r?\n/).filter(line => line.trim());
+        let books = [];
+        for (const line of lines) {
+            try {
+                const book = JSON.parse(line);
+                books.push(book);
+            } catch (e) { /* skip invalid lines */ }
+        }
+        return books.length > 0 ? books : null;
+    }
+    // Fallback: old regex parsing (if no JSON block)
+    const bookListRegex = /([0-9]+)\. 제목: ([^\n]+)\n\s*저자: ([^\n]+)\n\s*출판사: ([^\n]+)\n\s*출판연도: ([^\n]+)\n\s*대출 횟수: ([^\n]+)/g;
+    let match;
+    let books = [];
+    while ((match = bookListRegex.exec(text)) !== null) {
+        books.push({
+            idx: match[1],
+            title: match[2],
+            author: match[3],
+            publisher: match[4],
+            year: match[5],
+            loan: match[6],
+            cover: null
+        });
+    }
+    return books.length > 0 ? books : null;
+}
+
+function appendMessage(text, sender) {
+    // If bot and book list, render only grid cards, no chat bubble
+    if (sender === 'bot') {
+        const books = renderBookList(text);
+        if (books) {
+            if (!window.currentBooks) window.currentBooks = [];
+            window.currentBooks = books;
+            const ul = document.createElement('ul');
+            ul.className = 'book-list';
+            books.slice(0, 15).forEach((book, idx) => {
+                const li = document.createElement('li');
+                li.className = 'book-item';
+                // Ranking circle
+                const rank = document.createElement('div');
+                rank.className = 'book-rank';
+                rank.textContent = idx + 1;
+                li.appendChild(rank);
+                // Book cover
+                const img = document.createElement('img');
+                img.className = 'book-cover';
+                img.src = book.cover && book.cover.length > 10 ? book.cover : 'https://cdn-icons-png.flaticon.com/512/29/29302.png';
+                img.alt = 'cover';
+                li.appendChild(img);
+                // Info
+                const info = document.createElement('div');
+                info.className = 'book-info';
+                info.innerHTML = `<div class=\"book-title\">${book.title || book.bookname}</div>
+                    <div class=\"book-meta\">저자: ${book.author || book.authors}</div>
+                    <div class=\"book-meta\">출판사: ${book.publisher}</div>
+                    <div class=\"book-meta\">출판연도: ${book.year || book.publication_year}</div>
+                    <div class=\"book-meta\">대출 횟수: ${book.loan || book.loan_count}</div>`;
+                // Video button
+                const videoBtn = document.createElement('button');
+                videoBtn.className = 'video-btn';
+                videoBtn.textContent = '영상 보기';
+                videoBtn.onclick = function() { generateSummaryVideo(idx, li); };
+                info.appendChild(videoBtn);
+                li.appendChild(info);
+                ul.appendChild(li);
+            });
+            // Remove all chat bubbles and just append the grid book list
+            chatWindow.appendChild(ul);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            return;
+        }
+    }
+    // Default: keep chat bubble for user and non-booklist bot
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble ' + sender;
+    bubble.textContent = text;
+    chatWindow.appendChild(bubble);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Modal HTML
+if (!document.getElementById('video-modal-bg')) {
+    const modalBg = document.createElement('div');
+    modalBg.id = 'video-modal-bg';
+    modalBg.className = 'modal-bg';
+    modalBg.innerHTML = `
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close-btn">&times;</button>
+            <div id="modal-video-container"></div>
+            <div class="modal-download" id="modal-download-container"></div>
+        </div>
+    `;
+    document.body.appendChild(modalBg);
+    document.getElementById('modal-close-btn').onclick = closeModal;
+    modalBg.onclick = function(e) { if (e.target === modalBg) closeModal(); };
+}
+function openModal(videoUrl) {
+    const modalBg = document.getElementById('video-modal-bg');
+    const videoContainer = document.getElementById('modal-video-container');
+    const downloadContainer = document.getElementById('modal-download-container');
+    videoContainer.innerHTML = `<video class='modal-video' controls autoplay src='${videoUrl}'></video>`;
+    downloadContainer.innerHTML = `<a href='${videoUrl}' download class='download-btn'>영상 다운로드</a>`;
+    modalBg.classList.add('active');
+}
+function closeModal() {
+    const modalBg = document.getElementById('video-modal-bg');
+    const videoContainer = document.getElementById('modal-video-container');
+    const downloadContainer = document.getElementById('modal-download-container');
+    videoContainer.innerHTML = '';
+    downloadContainer.innerHTML = '';
+    modalBg.classList.remove('active');
+}
+function generateSummaryVideo(idx, liElem) {
+    const book = window.currentBooks[idx];
+    const videoBtn = liElem.querySelector('.video-btn');
+    videoBtn.disabled = true;
+    const originalText = videoBtn.textContent;
+    videoBtn.textContent = '로딩 중...';
+    fetch('/api/generate_book_summary_video/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ book: book })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.video_url) {
+            openModal(data.video_url);
+        } else {
+            alert(data.error || 'Failed to generate video.');
+        }
+        videoBtn.disabled = false;
+        videoBtn.textContent = originalText;
+    })
+    .catch(err => {
+        alert('Error: ' + err.message);
+        videoBtn.disabled = false;
+        videoBtn.textContent = originalText;
+    });
+}
+
+chatSend.onclick = async function() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+    appendMessage(message, 'user');
+    chatInput.value = '';
+    chatSend.disabled = true;
+    chatSend.classList.add('loading');
+    try {
+        const res = await fetch('/api/chat/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        if (data.response) {
+            appendMessage(data.response, 'bot');
+        } else {
+            appendMessage('오류가 발생했습니다.', 'bot');
+        }
+    } catch (e) {
+        appendMessage('서버와 통신할 수 없습니다.', 'bot');
+    }
+    chatSend.disabled = false;
+    chatSend.classList.remove('loading');
+    chatInput.focus();
+};
+
+chatInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') chatSend.click();
+});
+
+// Prevent horizontal scrolling
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (document.activeElement !== chatInput) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
+</body>
+</html>

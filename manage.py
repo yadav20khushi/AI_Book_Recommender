@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+#python library_genta_django\manage.py runserver
+#http://127.0.0.1:8000/chat/
+
 import os
 import sys
 
