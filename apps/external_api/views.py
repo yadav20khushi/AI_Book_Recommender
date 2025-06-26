@@ -1,47 +1,3 @@
-# from django.shortcuts import render, redirect
-# from apps.external_api.keyword_flow import KeywordRecommendationFlow
-# from apps.external_api.bestseller import BestsellerRecommendation
-# from apps.external_api.age_group import AgeGroupRecommendationFlow
-# from django.views.decorators.csrf import csrf_exempt
-# import os
-
-# def keyword_page(request):
-#     api_key = os.environ.get("DATA4LIBRARY_API_KEY")
-#     recommender = KeywordRecommendationFlow(auth_key=api_key)
-#     keywords = recommender.get_monthly_keywords()
-#     return render(request, 'keyword_page.html', {'keywords': keywords})
-
-# @csrf_exempt  # Optional: only if CSRF becomes an issue
-# def books_by_keyword(request):
-#     if request.method == "POST":
-#         selected_keyword = request.POST.get("keyword")
-#         if selected_keyword:
-#             recommender = KeywordRecommendationFlow(auth_key=os.environ.get("DATA4LIBRARY_API_KEY"))
-#             books = recommender.get_books_by_keyword(selected_keyword)
-#             #print("Books returned:", books)
-#             return render(request, 'bookList_page.html', {'books': books, 'keyword': selected_keyword})
-#     return redirect('keyword_page')
-
-# def age_group_page(request):
-#     return render(request, 'ageGroup_page.html')
-
-# @csrf_exempt
-# def book_list_by_agegroup(request):
-#     if request.method == "POST":
-#         selected_group = request.POST.get("age_group", "overall")  # fallback to "overall"
-#         recommender = AgeGroupRecommendationFlow(auth_key=os.environ.get("DATA4LIBRARY_API_KEY"))
-#         books = recommender.get_books_by_agegroup(selected_group)
-#         return render(request, 'bookList_page.html', {'books': books})
-#     return redirect('age_group_page')  # fallback
-
-# def bestseller_books(request):
-#     auth_key = os.environ.get("DATA4LIBRARY_API_KEY")
-#     recommender = BestsellerRecommendation(auth_key)
-#     books = recommender.get_bestseller_books()
-#     return render(request, 'bookList_page.html', {'books': books})
-
-
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
@@ -51,6 +7,7 @@ from apps.external_api.keyword_flow import KeywordRecommendationFlow
 from apps.external_api.bestseller import BestsellerRecommendation
 from apps.external_api.age_group import AgeGroupRecommendationFlow
 import os
+import json
 
 @api_view(["GET"])
 def keyword_api(request):
@@ -86,21 +43,19 @@ def get_description_api(request):
         return JsonResponse({"data": data})
 
 
+
 @api_view(["POST"])
-def get_similar_books_api(request):
-    if request.method == "POST":
-        isbn13 = request.POST.get("isbn13")
-        recommendation_type = request.POST.get("type", "reader")
-        data = UsersSelectedBook(auth_key=os.environ.get("DATA4LIBRARY_API_KEY")).get_similar_books(isbn13, recommendation_type)
-        return JsonResponse({"books": data})
-    
-@api_view(["POST"])
-def get_advanced_books_api(request):
-    if request.method == "POST":
-        isbn13 = request.POST.get("isbn13")
-        recommendation_type = request.POST.get("type", "mania")
-        data = UsersSelectedBook(auth_key=os.environ.get("DATA4LIBRARY_API_KEY")).get_similar_books(isbn13, recommendation_type)
-        return JsonResponse({"books": data})
+def get_recommendation_api(request):
+    isbn13 = request.data.get("isbn13")
+    recommendation_type = request.data.get("recommendation_type", "reader")
+
+    if not isbn13:
+        return JsonResponse({"error": "Missing ISBN"}, status=400)
+
+    recommender = UsersSelectedBook(auth_key=os.environ.get("DATA4LIBRARY_API_KEY"))
+    books = recommender.get_similar_books(isbn13, recommendation_type=recommendation_type)
+    return JsonResponse({"books": books})
+
 
 
 @api_view(["POST"])
@@ -128,7 +83,7 @@ def book_metadata_api(request):
         else:
             return JsonResponse({"error": "Book not found"}, status=404)
         
-import json
+
 @api_view(["POST"])
 def book_list_by_agegroup_api(request):
     if request.method == "POST":

@@ -14,6 +14,7 @@ export default {
       },
       animation: {
         dropIn: 'dropIn 0.4s ease-out forwards',
+        fadeOut: 'fadeOut 0.5s ease-in-out forwards',
       },
     },
   },

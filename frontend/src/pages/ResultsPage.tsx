@@ -17,6 +17,8 @@ export default function ResultsPage() {
     const keyword = searchParams.get('query') || ''
     const navigate = useNavigate()
     const ageGroup = searchParams.get('age_group') || ''
+    const similarTo = searchParams.get('similar_to') || ''
+    const advancedFrom = searchParams.get('advanced_from') || ''
 
     function getCookie(name: string): string | undefined {
         const match = document.cookie
@@ -40,12 +42,19 @@ export default function ResultsPage() {
                 } else if (keyword) {
                     endpoint = 'http://127.0.0.1:8000/api/books_by_keyword/'
                     payload = { keyword }
+                } else if (similarTo || advancedFrom) {
+                    endpoint = 'http://127.0.0.1:8000/api/recommendation/'
+                    payload = {
+                        isbn13: similarTo || advancedFrom,
+                        recommendation_type: similarTo ? 'reader' : 'mania'
+                    }
                 } else {
-                    console.warn('❌ No query or age group provided.')
+                    console.warn('❌ No query provided.')
                     setBooks([])
                     setLoading(false)
                     return
                 }
+
 
                 const res = await fetch(endpoint, {
                     method: 'POST',
@@ -79,17 +88,18 @@ export default function ResultsPage() {
             <main className="flex-1 p-8 overflow-y-auto">
                 <h1 className="text-2xl font-bold mb-6 text-center">
                     {ageGroup ? (
-                        <>
-                            📖 Books for age group: <span className="text-blue-400 capitalize">{ageGroup}</span>
-                        </>
+                        <>📖 Books for age group: <span className="text-blue-400 capitalize">{ageGroup}</span></>
                     ) : keyword ? (
-                        <>
-                            🔍 Books for keyword: <span className="text-blue-400">{keyword}</span>
-                        </>
+                        <>🔍 Books for keyword: <span className="text-blue-400">{keyword}</span></>
+                    ) : similarTo ? (
+                        <>🔁 Similar books <span className="text-blue-400"></span></>
+                    ) : advancedFrom ? (
+                        <>📘 Advanced picks <span className="text-blue-400"></span></>
                     ) : (
                         '📚 Recommended Books'
                     )}
                 </h1>
+
 
                 {loading ? (
                     <p className="text-center text-gray-400">Loading books...</p>
@@ -102,6 +112,14 @@ export default function ResultsPage() {
                         ) : keyword ? (
                             <>
                                 No books found for keyword <span className="text-blue-400">"{keyword}"</span>.
+                            </>
+                        ) : similarTo ? (
+                            <>
+                                No similar books Found <span className="text-blue-400"></span>.
+                            </>
+                        ) : advancedFrom ? (
+                            <>
+                                No Advanced Recommendations <span className="text-blue-400"></span>.
                             </>
                         ) : (
                             'No books found.'

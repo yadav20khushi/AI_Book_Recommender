@@ -31,29 +31,6 @@ class ReturningUserRecommendationFlow(ExternalAPIService):
 
         return ordered_isbns
 
-
-    # @api_cache(3600)
-    # def get_avid_reader_recommendations(self):
-    #     #pdb.set_trace()
-    #     isbns = self.get_user_isbns()
-    #     if not isbns:
-    #         return []
-
-    #     isbn_param = ";".join(isbns)  # API expects semicolon-separated string
-
-    #     url = f"http://data4library.kr/api/recommandList?authKey={self.auth_key}&isbn13={isbn_param}&type=reader&format=json"
-    #     res = self.get_json(url, fallback_data={})
-    #     parsed = []
-    #     for item in res.get("response", {}).get("docs", [])[:10]:
-    #         book_data = item.get("book", {})
-    #         parsed.append({
-    #             "title": book_data.get("bookname"),
-    #             "isbn13": book_data.get("isbn13"),
-    #             "author": book_data.get("authors"),
-    #             "cover": book_data.get("bookImageURL")
-    #         })
-
-    #     return parsed
     
     
     @api_cache(3600)

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import { useClovaChat } from '../context/ClovaChatContext'
 
 type Message = {
     role: 'user' | 'assistant'
@@ -9,34 +10,52 @@ type Message = {
 
 export default function ClovaChatPage() {
     const location = useLocation()
-    const isbn13 = location.state?.isbn13
-
-    const [bookInfo, setBookInfo] = useState<any>(null)
+    const navigate = useNavigate()
+    const incomingIsbn = location.state?.isbn13 || null
+    const [isbn13, setIsbn13] = useState(incomingIsbn)
+    const { bookInfo, setBookInfo, clovaMessages, setClovaMessages, chatStarted, setChatStarted } = useClovaChat()
     const [input, setInput] = useState('')
     const [loading, setLoading] = useState(false)
-    const [chatStarted, setChatStarted] = useState(false)
-    const [clovaMessages, setClovaMessages] = useState<Message[]>([])
+    const [availabilityMsg, setAvailabilityMsg] = useState<string | null>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const [fadeOut, setFadeOut] = useState(false)
+    const fetchedRef = useRef(false)
+
+    function getCookie(name: string): string | undefined {
+        const match = document.cookie.split('; ').find(row => row.startsWith(name + '='))
+        return match ? decodeURIComponent(match.split('=')[1]) : undefined
+    }
+
+    const csrfToken = getCookie('csrftoken')
+
+    useEffect(() => {
+        const saved = sessionStorage.getItem('clovaChat')
+        const savedData = saved ? JSON.parse(saved) : null
+        const savedIsbn = savedData?.isbn13
+
+        if (incomingIsbn && incomingIsbn !== savedIsbn) {
+            sessionStorage.removeItem('clovaChat')
+            setIsbn13(incomingIsbn)
+        } else if (!incomingIsbn && savedIsbn) {
+            setIsbn13(savedIsbn)
+        }
+    }, [incomingIsbn])
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [clovaMessages])
 
-    const fetchedRef = useRef(false)
-
-    function getCookie(name: string): string | undefined {
-        const match = document.cookie
-            .split('; ')
-            .find(row => row.startsWith(name + '='));
-        return match ? decodeURIComponent(match.split('=')[1]) : undefined;
-    }
-
-    const csrfToken = getCookie('csrftoken');
-
     useEffect(() => {
+        const saved = sessionStorage.getItem('clovaChat')
+        const savedData = saved ? JSON.parse(saved) : null
+        const savedIsbn = savedData?.isbn13
+
+        if (!isbn13 || fetchedRef.current || isbn13 === savedIsbn) return
+        fetchedRef.current = true
+
         const fetchBookMetadataAndInitClova = async () => {
-            if (!isbn13 || fetchedRef.current) return
-            fetchedRef.current = true
+            setClovaMessages([])
+            setChatStarted(false)
 
             try {
                 const metadataRes = await fetch('/api/book_metadata/', {
@@ -65,11 +84,9 @@ export default function ClovaChatPage() {
                 const clovaData = await clovaRes.json()
 
                 if (clovaData?.clova_response) {
-                    setClovaMessages((prev) => [
-                        ...prev,
-                        { role: 'assistant', content: clovaData.clova_response }
-                    ])
+                    setClovaMessages([{ role: 'assistant', content: clovaData.clova_response }])
                     setChatStarted(true)
+                    sessionStorage.setItem('clovaChat', JSON.stringify({ isbn13 }))
                 }
             } catch (err) {
                 console.error('❌ Error initializing Clova chat:', err)
@@ -80,41 +97,6 @@ export default function ClovaChatPage() {
 
         fetchBookMetadataAndInitClova()
     }, [isbn13])
-
-
-
-
-    // const sendMessage = async (e: React.FormEvent) => {
-    //     e.preventDefault()
-    //     if (!input.trim()) return
-
-    //     const newUserMessage: Message = {
-    //         role: 'user',
-    //         content: input,
-    //     }
-    //     setClovaMessages((prev) => [...prev, newUserMessage])
-    //     setInput('')
-    //     setLoading(true)
-    //     setChatStarted(true)
-
-    //     try {
-    //         const res = await fetch('http://127.0.0.1:8000/recommend/api/followup_question/', {
-    //             method: 'POST',
-    //             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    //             body: new URLSearchParams({ user_input: input }),
-    //             credentials: 'include',
-    //         })
-    //         const data = await res.json()
-    //         setClovaMessages((prev) => [
-    //             ...prev,
-    //             { role: 'assistant', content: data.clova_response },
-    //         ])
-    //     } catch (err) {
-    //         console.error('❌ Clova follow-up failed:', err)
-    //     } finally {
-    //         setLoading(false)
-    //     }
-    // }
 
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -140,10 +122,7 @@ export default function ClovaChatPage() {
             })
 
             const data = await res.json()
-            setClovaMessages((prev) => [
-                ...prev,
-                { role: 'assistant', content: data.clova_response },
-            ])
+            setClovaMessages((prev) => [...prev, { role: 'assistant', content: data.clova_response }])
         } catch (err) {
             console.error('❌ Clova follow-up failed:', err)
         } finally {
@@ -151,70 +130,44 @@ export default function ClovaChatPage() {
         }
     }
 
-
-    const displayTextFor = (endpoint: string): string => {
-        switch (endpoint) {
-            case 'book_description': return '설명을 해주세요'
-            case 'similar_books': return '비슷한 책 추천해주세요'
-            case 'advanced_books': return '고급 레벨 권장'
-            case 'check_availability': return '가용성 확인'
-            default: return '요청을 보냈습니다'
-        }
-    }
-
-    const fetchFromAPI = async (endpoint: string, bodyObj: Record<string, string>) => {
-        setLoading(true)
-        setChatStarted(true)
-
-        const userMessage: Message = {
-            role: 'user',
-            content: displayTextFor(endpoint),
-        }
-
+    const checkAvailability = async () => {
         try {
-            const res = await fetch(`/api/${endpoint}/`, {
+            const res = await fetch('/api/check_availability/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': csrfToken ?? '',
                 },
-                body: new URLSearchParams(bodyObj),
+                body: new URLSearchParams({ isbn13, lib_code: '110006' }),
                 credentials: 'include',
             })
-
             const data = await res.json()
-
-            let content = ''
-
-            if (Array.isArray(data.data)) {
-                const book = data.data[0]
-                content = `📘 ${book.title}\n👤 ${book.authors}\n📝 ${book.description}`
-            } else if (Array.isArray(data.books)) {
-                content = data.books
-                    .map((book: { title: string; author: string }) => `📘 ${book.title}\n👤 ${book.author}`)
-                    .join('\n\n')
-            } else if (typeof data.availability === 'string') {
-                content = data.availability
-            } else {
-                content = JSON.stringify(data, null, 2)
-            }
-
-            setClovaMessages((prev) => [...prev, userMessage, { role: 'assistant', content }])
+            setAvailabilityMsg(data.availability || 'No data available.')
+            setFadeOut(false)
+            setTimeout(() => setFadeOut(true), 2000)
+            setTimeout(() => {
+                setAvailabilityMsg(null)
+                setFadeOut(false)
+            }, 2500)
         } catch (err) {
-            console.error(`❌ Failed to fetch ${endpoint}`, err)
-        } finally {
-            setLoading(false)
+            console.error('❌ Availability check failed:', err)
+            setAvailabilityMsg('Failed to check availability.')
+            setTimeout(() => setAvailabilityMsg(null), 3000)
         }
     }
 
     return (
-        <div className="flex h-screen bg-[#0f0f0f] text-white">
+        <div className="flex h-screen bg-[#0f0f0f] text-white relative">
             <Sidebar collapsed={false} onToggle={() => { }} />
 
             <div className="flex-1 flex">
-                {/* Chat Section */}
-                <div className="flex-1 flex flex-col p-6">
-                    {/* Message List */}
+                <div className="flex-1 flex flex-col p-6 relative">
+                    {availabilityMsg && (
+                        <div className="absolute bottom-24 left-[calc(50%-130px)] transform -translate-x-1/2 bg-blue-800 text-gray-100 px-8 py-4 rounded-2xl text-lg shadow-2xl animate-dropIn z-50 ${fadeOut ? 'animate-fadeOut' : ''}">
+                            {availabilityMsg}
+                        </div>
+                    )}
+
                     <div className="flex-1 overflow-y-auto border border-[#2d2d2d] rounded-lg p-4 space-y-4">
                         {clovaMessages.map((msg, i) => (
                             <div
@@ -227,7 +180,6 @@ export default function ClovaChatPage() {
                                 {msg.content}
                             </div>
                         ))}
-
                         {loading && (
                             <div className="mr-auto bg-gray-700 text-white px-4 py-2 rounded-xl text-sm animate-pulse">
                                 ⏳ Clova is thinking...
@@ -236,16 +188,7 @@ export default function ClovaChatPage() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Action Tiles */}
-                    <div className="flex justify-center gap-4 my-4 flex-wrap">
-                        <button onClick={() => fetchFromAPI('book_description', { isbn13 })} className={tileClass} disabled={!chatStarted || loading}>설명을 해주세요</button>
-                        <button onClick={() => fetchFromAPI('similar_books', { isbn13 })} className={tileClass} disabled={!chatStarted || loading}>비슷한 책 추천해주세요</button>
-                        <button onClick={() => fetchFromAPI('advanced_books', { isbn13 })} className={tileClass} disabled={!chatStarted || loading}>고급 레벨 권장</button>
-                        <button onClick={() => fetchFromAPI('check_availability', { isbn13, lib_code: '110006' })} className={tileClass} disabled={!chatStarted || loading}>가용성 확인</button>
-                    </div>
-
-                    {/* Input Bar */}
-                    <form onSubmit={sendMessage} className="mt-2 flex items-center gap-3">
+                    <form onSubmit={sendMessage} className="mt-4 flex items-center gap-3">
                         <input
                             className="flex-1 px-4 py-3 rounded-full bg-[#1a1a1a] border border-gray-600 text-white outline-none"
                             placeholder="질문을 입력하세요..."
@@ -263,14 +206,16 @@ export default function ClovaChatPage() {
                     </form>
                 </div>
 
-                {/* Book Info */}
                 <div className="w-[260px] p-4 bg-[#111] border-l border-[#2d2d2d] flex flex-col justify-center items-center text-center">
                     {bookInfo ? (
                         <>
                             <img src={bookInfo.cover} alt="cover" className="w-40 h-60 object-cover rounded shadow mb-4" />
-                            <div className="text-center">
-                                <h2 className="font-bold text-lg mb-1">{bookInfo.title}</h2>
-                                <p className="text-sm text-gray-400">{bookInfo.author}</p>
+                            <h2 className="font-bold text-lg mb-1">{bookInfo.title}</h2>
+                            <p className="text-sm text-gray-400 mb-6">{bookInfo.author}</p>
+                            <div className="flex flex-col gap-3">
+                                <button onClick={() => navigate(`/result?similar_to=${isbn13}`)} className={tileClass}>비슷한 책 추천해주세요</button>
+                                <button onClick={() => navigate(`/result?advanced_from=${isbn13}`)} className={tileClass}>고급 레벨 권장</button>
+                                <button onClick={checkAvailability} className={tileClass}>가용성 확인</button>
                             </div>
                         </>
                     ) : (
@@ -280,10 +225,9 @@ export default function ClovaChatPage() {
             </div>
         </div>
     )
-
 }
 
 const tileClass =
-    'w-30 h-18 px-4 py-4 flex items-center justify-center text-center bg-[#1a1a1a] border border-gray-600 rounded-2xl text-sm font-medium text-gray-200 shadow-sm transition-transform duration-200 cursor-pointer ' +
+    'w-44 h-12 px-4 py-2 flex items-center justify-center text-center bg-[#1a1a1a] border border-gray-600 rounded-2xl text-sm font-medium text-gray-200 shadow-sm transition-transform duration-200 cursor-pointer ' +
     'hover:shadow-lg hover:bg-[#2a2a2a] hover:border-gray-400 hover:-translate-y-1 ' +
     'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none'

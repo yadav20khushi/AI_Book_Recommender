@@ -31,7 +31,7 @@ class KeywordRecommendationFlow(ExternalAPIService):
             keyword_data = item.get("keyword", {})
             keywords.append(keyword_data.get("word", "N/A"))
 
-        return keywords #Connect with keyword_page.html
+        return keywords 
 
     @api_cache(3600)
     def get_books_by_keyword(self, keyword): #The user's selected keyword
@@ -46,6 +46,6 @@ class KeywordRecommendationFlow(ExternalAPIService):
                 "author": book_data.get("authors"),
                 "cover": book_data.get("bookImageURL") #Display to user
             })
-        return parsed #Connect with bookList_page.html
+        return parsed 
 
 
