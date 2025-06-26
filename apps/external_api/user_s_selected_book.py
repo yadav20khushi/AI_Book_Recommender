@@ -54,6 +54,6 @@ class UsersSelectedBook(ExternalAPIService):
         url = f"https://data4library.kr/api/bookExist?authKey={self.auth_key}&libCode={lib_code}&isbn13={isbn13}&format=json"
         res = self.get_json(url)
         if res.get('response', {}).get('result', {}).get('hasBook') == 'Y':
-            return "The Book is available in the library"  #Return in korean
+            return "해당 도서는 선택하신 도서관에서 이용하실 수 있습니다."  #Return in korean
         else:
-            return "The Book is not available in the library"
+            return "죄송하지만, 해당 도서가 현재 선택하신 도서관에는 비치되어 있지 않습니다."

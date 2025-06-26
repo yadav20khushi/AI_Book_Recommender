@@ -13,7 +13,7 @@ class ClovaBookChatHandler:
 
     def __init__(self, username: str):
         self.username = username
-        print("📌 ClovaBookChatHandler initialized for user:", username)
+        print("ClovaBookChatHandler initialized for user:", username)
 
     def generate_prompt(self, title: str, author: str, description: str) -> str:
         return (
@@ -40,21 +40,21 @@ class ClovaBookChatHandler:
             response.raise_for_status()
             result = response.json()
 
-            print("✅ Clova Raw Response:", result)
+            print("Clova Raw Response:", result)
 
             msg = result.get("result", {}).get("message", {})
-            return msg.get("content", f"⚠️ Clova 응답이 예상과 다릅니다: {result}")
+            return msg.get("content", f"Clova 응답이 예상과 다릅니다: {result}")
 
         except Exception as e:
-            print("❌ Clova API call failed:", e)
+            print("Clova API call failed:", e)
             try:
-                print("🔴 Error response body:", response.text)
+                print("Error response body:", response.text)
             except:
                 pass
             return f"Clova API 호출에 실패했습니다: {e}"
 
     def save_user_history(self, book_data: dict, clova_response: str):
-        print("📥 Saving user history...")
+        print("Saving user history...")
 
         title = book_data.get("title", "제목 없음")
         author = book_data.get("authors", "저자 정보 없음")
@@ -73,16 +73,16 @@ class ClovaBookChatHandler:
         )
 
         if created:
-            print(f"✅ Book created: {title}")
+            print(f"Book created: {title}")
         else:
-            print(f"ℹ️ Book existed: {title}")
+            print(f"Book existed: {title}")
 
         user = User.objects.filter(username=self.username).first()
         if not user:
-            print(f"❌ No user found with username: {self.username}")
+            print(f"No user found with username: {self.username}")
             return
 
-        print(f"✅ Saving UserHistory for user: {user.username}, book: {title}")
+        print(f"Saving UserHistory for user: {user.username}, book: {title}")
         user_history = UserHistory.objects.create(
             user=user,
             book=book_obj,
@@ -98,11 +98,11 @@ class ClovaBookChatHandler:
                 {"role": "assistant", "content": clova_response}
             ]
         )
-        print("✅ ChatHistory created successfully")
+        print("ChatHistory created successfully")
 
     def start_chat(self, book_metadata: list[dict]) -> dict:
         if not book_metadata:
-            print("⚠️ No book metadata provided")
+            print("No book metadata provided")
             return {"error": "책 정보가 제공되지 않았습니다."}
 
         selected = book_metadata[0]
@@ -110,7 +110,7 @@ class ClovaBookChatHandler:
         author = selected.get("authors", "")
         description = selected.get("description", "")
 
-        print(f"📚 Starting chat for book: {title}")
+        print(f"Starting chat for book: {title}")
 
         system_msg = {"role": "system", "content": "당신은 책을 잘 아는 친절한 도우미입니다."}
         user_msg = {"role": "user", "content": self.generate_prompt(title, author, description)}
@@ -126,7 +126,7 @@ class ClovaBookChatHandler:
 
 
     def followup_chat(self, session_messages: list[dict], user_input: str) -> dict:
-        print(f"➡️ User follow-up: {user_input}")
+        print(f"User follow-up: {user_input}")
 
         cleaned_session = [
             msg for msg in session_messages
@@ -139,7 +139,7 @@ class ClovaBookChatHandler:
 
         cleaned_session.append({"role": "assistant", "content": clova_response})
 
-        print("✅ Follow-up complete")
+        print("Follow-up complete")
 
         return {
             "response": clova_response,

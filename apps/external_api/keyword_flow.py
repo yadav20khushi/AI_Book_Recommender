@@ -1,3 +1,7 @@
+"""
+    When the user selects keyword on the home_page.html, this api will be triggered and the top 10
+    keywords will be shown on keyword_page.html
+"""
 from apps.external_api.base import ExternalAPIService
 from apps.caching.cache import api_cache
 from apps.books.models import Book
@@ -13,10 +17,6 @@ class KeywordRecommendationFlow(ExternalAPIService):
         prev_month = first - timedelta(days=1)
         return prev_month.strftime("%Y-%m")
 
-    """
-        When the user selects keyword on the home_page.html, this api will be triggered and the top 10
-        keywords will be shown on keyword_page.html
-    """
     @api_cache(3600)  # ⏱ 1 hour cache
     def get_monthly_keywords(self):
         url = f"https://data4library.kr/api/monthlyKeywords?authKey={self.auth_key}&month={self.month}&format=json"

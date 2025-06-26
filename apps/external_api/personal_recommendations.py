@@ -49,7 +49,7 @@ class ReturningUserRecommendationFlow(ExternalAPIService):
         for i, item in enumerate(res.get("response", {}).get("docs", [])):
             book_data = item.get("book")
             if not book_data:
-                print(f"❌ Skipped doc[{i}] — no 'book'")
+                print(f"Skipped doc[{i}] — no 'book'")
                 continue
 
             title = book_data.get("bookname")
@@ -58,7 +58,7 @@ class ReturningUserRecommendationFlow(ExternalAPIService):
             cover = book_data.get("bookImageURL")
 
             if not all([title, isbn13, authors, cover]):
-                print(f"⚠️ Skipping incomplete book[{i}]:", book_data)
+                print(f"Skipping incomplete book[{i}]:", book_data)
                 continue
 
             parsed.append({
@@ -68,5 +68,5 @@ class ReturningUserRecommendationFlow(ExternalAPIService):
                 "cover": cover.strip()
             })
 
-        print(f"✅ Parsed {len(parsed)} books")
+        print(f"Parsed {len(parsed)} books")
         return parsed
