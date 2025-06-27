@@ -8,14 +8,44 @@ export default function HomePage1() {
     const [collapsed, setCollapsed] = useState(false)
     const [message, setMessage] = useState('')
     const navigate = useNavigate()
+    const [sending, setSending] = useState(false)
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        if (message.trim()) {
-            console.log('Message:', message)
-            setMessage('')
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!message.trim()) return;
+
+        setSending(true)
+
+        try {
+            const res = await fetch('http://127.0.0.1:8000/api/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'chat', message }),
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // Pass search_query instead of query
+                navigate(`/result?search_query=${encodeURIComponent(message)}`, {
+                    state: {
+                        books: data.books || [],
+                        responseText: data.response || '',
+                    },
+                });
+            } else {
+                alert('🔴 검색 실패: ' + data.error);
+            }
+        } catch (err) {
+            console.error('Error during search:', err);
+            alert('서버 오류가 발생했습니다.');
+        } finally {
+            setSending(false)
+            setMessage('');
         }
-    }
+    };
+
 
     return (
         <div className="flex min-h-screen bg-[#0f0f0f] text-white">
@@ -68,12 +98,14 @@ export default function HomePage1() {
                         />
                         <button
                             type="submit"
-                            className="ml-3 bg-white text-black w-9 h-9 rounded-full flex items-center justify-center hover:scale-105 transition"
+                            disabled={sending}
+                            className={`px-6 py-2 rounded-full bg-blue-600 text-white font-semibold transition-all duration-200 
+              hover:bg-blue-700 hover:scale-105 focus:outline-none 
+              ${sending ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
-                            <svg viewBox="0 0 24 24" className="w-4 h-4">
-                                <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" fill="currentColor" />
-                            </svg>
+                            {sending ? 'Sending...' : 'Send'}
                         </button>
+
                     </div>
                 </form>
             </div>

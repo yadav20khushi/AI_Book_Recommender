@@ -9,6 +9,7 @@ import BestsellerPage from './pages/BestsellerPage'
 import SignupPage from './pages/SignupPage'
 import LoginPage from './pages/LoginPage'
 import ReturningUserPage from './pages/ReturningUserPage'
+import SearchBar from './components/SearchBar'
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/age-group" element={<AgeGroupPage />} />
         <Route path="/bestsellers" element={<BestsellerPage />} />
         <Route path="/returning" element={<ReturningUserPage />} />
+        <Route path="/searchbar" element={<SearchBar />} />
       </Routes>
     </Router>
   )

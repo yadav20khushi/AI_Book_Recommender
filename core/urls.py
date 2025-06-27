@@ -22,4 +22,5 @@ urlpatterns = [
     path("", include("apps.users.urls")),  # Handles signup, login, home, returning
     path('api/', include('apps.external_api.urls')),
     path('recommend/', include('apps.recommendations.urls')),
+    path('', include('myapp.urls')),
 ]

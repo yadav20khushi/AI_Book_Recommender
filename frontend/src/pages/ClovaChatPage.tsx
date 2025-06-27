@@ -21,6 +21,11 @@ export default function ClovaChatPage() {
     const [fadeOut, setFadeOut] = useState(false)
     const fetchedRef = useRef(false)
 
+    const [videoURL, setVideoURL] = useState<string | null>(null)
+    const [videoLoading, setVideoLoading] = useState<boolean>(false)
+    const [showVideo, setShowVideo] = useState(false)
+    const [videoPlaying, setVideoPlaying] = useState(true)
+
     function getCookie(name: string): string | undefined {
         const match = document.cookie.split('; ').find(row => row.startsWith(name + '='))
         return match ? decodeURIComponent(match.split('=')[1]) : undefined
@@ -35,6 +40,7 @@ export default function ClovaChatPage() {
 
         if (incomingIsbn && incomingIsbn !== savedIsbn) {
             sessionStorage.removeItem('clovaChat')
+            sessionStorage.removeItem('videoSummary')
             setIsbn13(incomingIsbn)
         } else if (!incomingIsbn && savedIsbn) {
             setIsbn13(savedIsbn)
@@ -44,6 +50,16 @@ export default function ClovaChatPage() {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [clovaMessages])
+
+    useEffect(() => {
+        const saved = sessionStorage.getItem('videoSummary')
+        const savedData = saved ? JSON.parse(saved) : null
+        if (savedData?.isbn13 === isbn13) {
+            setVideoURL(savedData.video_url)
+            setVideoLoading(false)
+        }
+    }, [isbn13])
+
 
     useEffect(() => {
         const saved = sessionStorage.getItem('clovaChat')
@@ -70,8 +86,45 @@ export default function ClovaChatPage() {
                 const metadata = await metadataRes.json()
                 setBookInfo(metadata)
 
-                setLoading(true)
+                // 🔁 Reuse video if available
+                const savedVideo = sessionStorage.getItem('videoSummary')
+                const savedVideoData = savedVideo ? JSON.parse(savedVideo) : null
 
+                if (savedVideoData?.isbn13 === isbn13 && savedVideoData.video_url) {
+                    setVideoURL(savedVideoData.video_url)
+                    setVideoLoading(false)
+                    console.log('✅ Reusing previously generated video.')
+                } else {
+                    setVideoLoading(true)
+                    // 🔁 Fire video generation in parallel, but don’t block Clova
+                    fetch('/api/video_summary/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken ?? '',
+                        },
+                        body: JSON.stringify({ book: metadata }),
+                        credentials: 'include',
+                    })
+                        .then((res) => res.json())
+                        .then((data) => {
+                            if (data.success && data.video_url) {
+                                setVideoURL(data.video_url)
+                                sessionStorage.setItem('videoSummary', JSON.stringify({
+                                    isbn13,
+                                    video_url: data.video_url
+                                }))
+                            }
+                        })
+                        .catch((err) => console.error('❌ Failed to generate video:', err))
+                        .finally(() => {
+                            setVideoLoading(false)
+                        })
+                }
+
+
+
+                setLoading(true)
                 const clovaRes = await fetch('/recommend/api/selected_book/', {
                     method: 'POST',
                     headers: {
@@ -163,7 +216,7 @@ export default function ClovaChatPage() {
             <div className="flex-1 flex">
                 <div className="flex-1 flex flex-col p-6 relative">
                     {availabilityMsg && (
-                        <div className="absolute bottom-24 left-[calc(50%-130px)] transform -translate-x-1/2 bg-blue-800 text-gray-100 px-8 py-4 rounded-2xl text-lg shadow-2xl animate-dropIn z-50 ${fadeOut ? 'animate-fadeOut' : ''}">
+                        <div className="absolute bottom-24 left-[calc(50%-130px)] transform -translate-x-1/2 bg-blue-800 text-gray-100 px-8 py-4 rounded-2xl text-lg shadow-2xl animate-dropIn z-50">
                             {availabilityMsg}
                         </div>
                     )}
@@ -216,12 +269,43 @@ export default function ClovaChatPage() {
                                 <button onClick={() => navigate(`/result?similar_to=${isbn13}`)} className={tileClass}>비슷한 책 추천해주세요</button>
                                 <button onClick={() => navigate(`/result?advanced_from=${isbn13}`)} className={tileClass}>고급 레벨 권장</button>
                                 <button onClick={checkAvailability} className={tileClass}>가용성 확인</button>
+                                {videoLoading ? (
+                                    <div className="text-sm text-gray-400 mt-2">🎬 Generating video...</div>
+                                ) : videoURL ? (
+                                    <button onClick={() => setShowVideo(true)} className={tileClass}>📺 요약 영상 보기</button>
+                                ) : (
+                                    <div className="text-sm text-gray-500 mt-2">🎞️ 자동 요약 영상 생성 중...</div>
+                                )}
                             </div>
                         </>
                     ) : (
                         <p className="text-gray-500 text-sm">Loading book info...</p>
                     )}
                 </div>
+
+                {showVideo && videoURL && (
+                    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+                        <div className="bg-[#1a1a1a] rounded-xl p-4 relative w-[90%] max-w-2xl">
+                            <button onClick={() => setShowVideo(false)} className="absolute top-2 right-2 text-white text-xl">✕</button>
+                            <video
+                                src={videoURL}
+                                controls
+                                autoPlay={videoPlaying}
+                                crossOrigin="anonymous"
+                                onPause={() => setVideoPlaying(false)}
+                                onPlay={() => setVideoPlaying(true)}
+                                className="w-full rounded-md"
+                            />
+                            <div className="mt-2 text-center">
+                                <button
+                                    onClick={() => setVideoPlaying(!videoPlaying)}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-full"
+                                >
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
